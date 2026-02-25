@@ -1,4 +1,4 @@
-@cc-p4p-router
+/cc-p4p-router
 
 Before we ship this, I want to make sure the success metrics in the spec are actually measurable.
 

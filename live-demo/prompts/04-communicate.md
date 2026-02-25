@@ -1,4 +1,4 @@
-@cc-p4p-router
+/cc-p4p-router
 
 I need two things written:
 

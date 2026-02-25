@@ -1,4 +1,4 @@
-@cc-p4p-router
+/cc-p4p-router
 
 We have the spec. Now I need to figure out where Advanced Timeline lands in the Q3 roadmap.
 

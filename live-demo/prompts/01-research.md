@@ -1,4 +1,4 @@
-@cc-p4p-router
+/cc-p4p-router
 
 Just got this Slack from the VP of Sales:
 
