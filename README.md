@@ -98,11 +98,15 @@ p4p-demo/
 
 ## Use It on Your Own Product
 
-Everything runs on your context, not training data. To adapt the demo:
+Everything runs on your context, not training data.
 
+**→ [Step-by-step adaptation guide](live-demo/ADAPT-FOR-YOUR-PRODUCT.md)**
+
+Short version:
 1. Replace `live-demo/CLAUDE.md` with your company's product context
 2. Update `live-demo/context/` with your personas, metrics, and OKRs
-3. Run `claude` — the system routes and remembers using your knowledge base
+3. Adapt the prompts in `live-demo/prompts/` — swap monday.com for your scenario
+4. Run `claude` — the system routes and remembers using your knowledge base
 
 ---
 
