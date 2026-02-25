@@ -533,12 +533,99 @@ Then synthesize into research/competitive.md"</span></pre>
       </div>
     </div>
   </div>
-  <div style="text-align:center;margin-top:20px;color:var(--gray);font-size:16px;">You don't need cc-p4p. You need the <span style="color:var(--accent);font-weight:700;">principles.</span></div>
-  <div class="notes" id="notes-14">"I built cc-p4p for PM workflows. The architecture is: Router → intent detection → specialist → quality gate → memory."</div>
+  <div style="text-align:center;margin-top:20px;color:var(--gray);font-size:16px;">The principles work without the plugin. The plugin <span style="color:var(--accent);font-weight:700;">automates</span> the principles.</div>
+  <div class="notes" id="notes-14">"I built cc-p4p for PM workflows. The architecture is: Router → intent detection → specialist → quality gate → memory. You can build this yourself or install cc-p4p."</div>
 </section>
 
-<!-- SLIDE 13B: SKILL ECOSYSTEM -->
+<!-- SLIDE 13A: cc-p4p WORKFLOWS -->
 <section class="slide slide-content" data-index="15">
+  <div class="slide-header">
+    <span class="slide-chip">cc-p4p</span>
+    <span class="slide-title-text">5 Workflows, One Natural-Language Prompt</span>
+  </div>
+  <div style="font-size:16px;color:var(--gray);margin-bottom:20px;">You don't use slash commands. You talk. The router <span style="color:var(--white);font-weight:600;">detects intent</span> and routes to the right agent.</div>
+  <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
+    <div style="display:grid;grid-template-columns:140px 200px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 20px;">
+      <span style="color:var(--accent);font-weight:700;font-size:14px;font-family:var(--mono);">RESEARCH</span>
+      <span style="color:var(--gray2);font-size:13px;">"analyze", "competitive"</span>
+      <span style="color:var(--gray);font-size:14px;">Competitive synthesis, evidence grades, personas → <span style="color:var(--white);">docs/research/</span></span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 200px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 20px;">
+      <span style="color:var(--accent);font-weight:700;font-size:14px;font-family:var(--mono);">SPEC</span>
+      <span style="color:var(--gray2);font-size:13px;">"write PRD", "spec this"</span>
+      <span style="color:var(--gray);font-size:14px;">Full PRD with P0/P1/P2, success metrics → <span style="color:var(--white);">docs/specs/</span></span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 200px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 20px;">
+      <span style="color:var(--accent);font-weight:700;font-size:14px;font-family:var(--mono);">ROADMAP</span>
+      <span style="color:var(--gray2);font-size:13px;">"prioritize", "RICE"</span>
+      <span style="color:var(--gray);font-size:14px;">RICE-scored backlog, capacity math → <span style="color:var(--white);">docs/roadmap/</span></span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 200px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 20px;">
+      <span style="color:var(--accent);font-weight:700;font-size:14px;font-family:var(--mono);">COMMUNICATE</span>
+      <span style="color:var(--gray2);font-size:13px;">"talking points", "message"</span>
+      <span style="color:var(--gray);font-size:14px;">Audience-matched comms, won't promise unconfirmed dates → <span style="color:var(--white);">docs/comms/</span></span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 200px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 20px;">
+      <span style="color:var(--accent);font-weight:700;font-size:14px;font-family:var(--mono);">METRICS</span>
+      <span style="color:var(--gray2);font-size:13px;">"KPIs", "how to measure"</span>
+      <span style="color:var(--gray);font-size:14px;">Leading + lagging indicators, guardrails → <span style="color:var(--white);">docs/metrics/</span></span>
+    </div>
+  </div>
+  <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="color:var(--gray2);font-size:14px;">Each workflow reads the previous workflow's memory. The spec quotes the research. The comms read the roadmap.</div>
+  </div>
+  <div class="notes" id="notes-15a">"No slash commands. You say 'I need to understand our competitive position' and it routes to RESEARCH. You say 'write the PRD' and it routes to SPEC — reading the research output automatically."</div>
+</section>
+
+<!-- SLIDE 13B: cc-p4p ARCHITECTURE -->
+<section class="slide slide-content" data-index="16">
+  <div class="slide-header">
+    <span class="slide-chip">cc-p4p</span>
+    <span class="slide-title-text">How It Works Under the Hood</span>
+  </div>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-label">Memory Layer</div>
+      <pre class="code-block"><span class="ac">.claude/cc-p4p/</span>
+  <span class="hl">activeContext.md</span>   <span class="dm">← what just happened</span>
+  <span class="hl">insights.md</span>        <span class="dm">← research findings</span>
+  <span class="hl">roadmap-state.md</span>   <span class="dm">← current priorities</span>
+
+<span class="dm">These survive session compaction.</span>
+<span class="dm">Context window resets. Memory doesn't.</span></pre>
+    </div>
+    <div class="col-card accent">
+      <div class="col-label accent-label">Router Contract</div>
+      <pre class="code-block"><span class="hl">Every workflow ends with:</span>
+
+<span class="ac">STATUS:</span> SPEC_COMPLETE
+<span class="ac">CONFIDENCE:</span> 92
+<span class="ac">BLOCKING:</span> false
+<span class="ac">MEMORY_NOTES:</span>
+  decisions: [...]
+  references: [...]
+
+<span class="dm">The system validates itself.</span></pre>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:20px;color:var(--gray);font-size:16px;">The Router Contract isn't for you. It's for the <span style="color:var(--accent);font-weight:700;">next workflow</span> — to know if it can proceed.</div>
+  <div class="notes" id="notes-15b">"This is what makes it a system, not a collection of prompts. The spec knows the research is done because the Router Contract says so."</div>
+</section>
+
+<!-- SLIDE: TRANSITION TO DEMO -->
+<section class="slide slide-part" data-index="17">
+  <div style="font-size:20px;color:var(--gray2);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;">Live Demo</div>
+  <div class="part-title" style="font-size:24px;letter-spacing:2px;">Let Me Show You cc-p4p Running</div>
+  <div class="part-line"></div>
+  <div style="margin-top:32px;color:var(--gray);font-size:17px;max-width:600px;text-align:center;line-height:1.8;">
+    A Monday morning competitive crisis.<br>
+    5 workflows. 9 minutes. Zero copy-paste.
+  </div>
+  <div class="notes" id="notes-16a">"I want to show you what all of this looks like when it's actually built. Not described — running." Then switch to terminal.</div>
+</section>
+
+<!-- SLIDE 13C: SKILL ECOSYSTEM -->
+<section class="slide slide-content" data-index="18">
   <div class="slide-header">
     <span class="slide-chip">Slide 13B</span>
     <span class="slide-title-text">The PM Skill Ecosystem</span>
@@ -550,10 +637,10 @@ Then synthesize into research/competitive.md"</span></pre>
   /synthesize-research  /metrics-review  /stakeholder-update
 
 <span class="hl">Install the stack in 15 minutes:</span>
+  <span class="ac">→</span> romiluz13/cc-p4p                   <span class="dm">(5 workflows, router, memory)</span>
   <span class="ac">→</span> anthropics/knowledge-work-plugins  <span class="dm">(6 commands)</span>
   <span class="ac">→</span> menkesu/awesome-pm-skills          <span class="dm">(29 skills, 7 modes)</span>
   <span class="ac">→</span> refoundai/lenny-skills             <span class="dm">(86 skills from Lenny)</span>
-  <span class="ac">→</span> bmad-code-org/BMAD-METHOD          <span class="dm">(PM agent "John")</span>
 
 Skills load lazily. <span class="gr">~100 tokens to decide if relevant.</span>
 Context window stays clean.</pre>
@@ -562,14 +649,14 @@ Context window stays clean.</pre>
 </section>
 
 <!-- PART 3 -->
-<section class="slide slide-part" data-index="16">
+<section class="slide slide-part" data-index="19">
   <div class="part-num">03</div>
   <div class="part-title">MCP Workflows</div>
   <div class="part-line"></div>
 </section>
 
 <!-- SLIDE 14: MCP AS WORKFLOW NODES -->
-<section class="slide slide-content" data-index="17">
+<section class="slide slide-content" data-index="20">
   <div class="slide-header">
     <span class="slide-chip">Slide 14</span>
     <span class="slide-title-text">MCPs Are Workflow Nodes</span>
@@ -597,7 +684,7 @@ Done.</span></pre>
 </section>
 
 <!-- SLIDE 15: 5 COMPOUND WORKFLOWS -->
-<section class="slide slide-content" data-index="18">
+<section class="slide slide-content" data-index="21">
   <div class="slide-header">
     <span class="slide-chip">Slide 15</span>
     <span class="slide-title-text">5 Compound MCP Workflows</span>
@@ -628,7 +715,7 @@ Done.</span></pre>
 </section>
 
 <!-- SLIDE 16: ARCHITECTURE -->
-<section class="slide slide-content" data-index="19">
+<section class="slide slide-content" data-index="22">
   <div class="slide-header">
     <span class="slide-chip">Slide 17</span>
     <span class="slide-title-text">The Context-MCP Architecture</span>
@@ -650,14 +737,14 @@ Done.</span></pre>
 </section>
 
 <!-- PART 4 -->
-<section class="slide slide-part" data-index="20">
+<section class="slide slide-part" data-index="23">
   <div class="part-num">04</div>
   <div class="part-title">Advanced Patterns</div>
   <div class="part-line"></div>
 </section>
 
 <!-- SLIDE 18: REVIEW LOOP -->
-<section class="slide slide-content" data-index="21">
+<section class="slide slide-content" data-index="24">
   <div class="slide-header">
     <span class="slide-chip">Slide 18</span>
     <span class="slide-title-text">The Review Loop</span>
@@ -680,7 +767,7 @@ What assumption are we making that might fail?"</span></pre>
 </section>
 
 <!-- SLIDE 19: AGENT ROLES -->
-<section class="slide slide-content" data-index="22">
+<section class="slide slide-content" data-index="25">
   <div class="slide-header">
     <span class="slide-chip">Slide 19</span>
     <span class="slide-title-text">PM Agent Roles Worth Defining</span>
@@ -705,7 +792,7 @@ What assumption are we making that might fail?"</span></pre>
 </section>
 
 <!-- SLIDE 21: BEFORE/AFTER -->
-<section class="slide slide-content" data-index="23">
+<section class="slide slide-content" data-index="26">
   <div class="slide-header">
     <span class="slide-chip">Slide 21</span>
     <span class="slide-title-text">The Before / After</span>
@@ -734,7 +821,7 @@ MCPs feed live data into every step</span></pre>
 </section>
 
 <!-- SLIDE 22: SETUP SPRINT -->
-<section class="slide slide-content" data-index="24">
+<section class="slide slide-content" data-index="27">
   <div class="slide-header">
     <span class="slide-chip">Slide 22</span>
     <span class="slide-title-text">Your Setup Sprint</span>
@@ -762,7 +849,7 @@ MCPs feed live data into every step</span></pre>
 </section>
 
 <!-- SLIDE 23: RESOURCES -->
-<section class="slide slide-content" data-index="25">
+<section class="slide slide-content" data-index="28">
   <div class="slide-header">
     <span class="slide-chip">Slide 23</span>
     <span class="slide-title-text">Resources</span>
@@ -791,7 +878,7 @@ MCPs feed live data into every step</span></pre>
 </section>
 
 <!-- SLIDE 24: CLOSE -->
-<section class="slide slide-closing" data-index="26">
+<section class="slide slide-closing" data-index="29">
   <svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.05;" width="400" height="400" viewBox="0 0 400 400">
     <circle cx="200" cy="200" r="180" stroke="#FF4D00" stroke-width="1" fill="none"/>
     <circle cx="200" cy="200" r="140" stroke="#FF4D00" stroke-width="1" fill="none"/>
@@ -809,7 +896,7 @@ MCPs feed live data into every step</span></pre>
 </section>
 
 </div>
-<div id="counter">1 / 27</div>
+<div id="counter">1 / 30</div>
 <div id="nav-hint">← → navigate · N speaker notes</div>
 <script>
 (function() {
