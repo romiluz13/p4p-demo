@@ -3,919 +3,815 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent Optimization &amp; Orchestration for Product Managers</title>
+<title>Agent Optimization & Orchestration for Product Managers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --navy:   #0D1B2A;
-  --navy2:  #112233;
-  --codebg: #1A2E40;
-  --cyan:   #00B4D8;
-  --amber:  #FF9F1C;
-  --white:  #FFFFFF;
-  --gray:   #CCD6E0;
-  --gray2:  #8899AA;
-  --font:   system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --mono:   'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  --bg: #0B0B0F;
+  --surface: #131318;
+  --surface2: #1A1A22;
+  --border: #2A2A35;
+  --accent: #FF4D00;
+  --accent-glow: rgba(255, 77, 0, 0.15);
+  --accent2: #FF6B2B;
+  --white: #FFFFFF;
+  --gray: #94A3B8;
+  --gray2: #64748B;
+  --gray3: #334155;
+  --green: #22C55E;
+  --blue: #3B82F6;
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
 }
 
-html, body {
-  background: #000;
-  height: 100%;
-  overflow: hidden;
-  font-family: var(--font);
-  color: var(--white);
-}
+html, body { background: var(--bg); height: 100%; overflow: hidden; font-family: var(--font); color: var(--white); }
 
-/* ---------- Slide stage ---------- */
-#stage {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #000;
-}
-
-.slide {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 1280px;
-  height: 720px;
-  background: var(--navy);
-  overflow: hidden;
-  display: none;
-  flex-direction: column;
-}
-
-.slide.active { display: flex; }
-
-/* Responsive scaling */
-@media (max-aspect-ratio: 16/9) {
-  .slide { transform: translate(-50%, -50%) scale(calc(100vw / 1280)); }
-}
-@media (min-aspect-ratio: 16/9) {
-  .slide { transform: translate(-50%, -50%) scale(calc(100vh / 720)); }
-}
-
-/* ---------- Slide counter ---------- */
-#counter {
-  position: fixed;
-  bottom: 18px;
-  right: 24px;
-  font-family: var(--font);
-  font-size: 13px;
-  color: var(--gray2);
-  letter-spacing: 0.05em;
-  z-index: 999;
+/* Dot grid background SVG */
+.dot-grid {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-image: radial-gradient(circle, var(--gray3) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
   pointer-events: none;
+  z-index: 0;
 }
 
-/* ---------- Notes toggle ---------- */
-.notes {
-  display: none;
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(0,0,0,0.88);
-  color: var(--gray);
-  font-size: 13px;
-  line-height: 1.5;
-  padding: 14px 28px;
-  border-top: 2px solid var(--cyan);
-  z-index: 100;
-  max-height: 180px;
-  overflow-y: auto;
+/* Progress bar */
+#progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); z-index: 100; transition: width 0.4s ease; }
+
+/* Stage */
+#stage { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 1; }
+
+/* Slides */
+.slide {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 1280px; height: 720px;
+  display: none; flex-direction: column; justify-content: center;
+  padding: 60px 80px;
+  opacity: 0; transition: opacity 0.4s ease;
 }
+.slide.active { display: flex; opacity: 1; }
+
+/* Title slide */
+.slide-title { align-items: flex-start; padding: 80px; }
+.title-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+.title-eyebrow::before { content: ''; width: 32px; height: 2px; background: var(--accent); }
+.title-main { font-size: 52px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; max-width: 800px; }
+.title-sub { font-size: 24px; font-weight: 300; color: var(--gray); margin-top: 16px; }
+.title-meta { font-size: 15px; color: var(--gray2); margin-top: 48px; line-height: 1.8; }
+.title-meta a { color: var(--accent); text-decoration: none; }
+.title-decoration { position: absolute; right: 80px; top: 50%; transform: translateY(-50%); }
+
+/* Part divider */
+.slide-part { align-items: center; justify-content: center; text-align: center; }
+.part-num { font-size: 120px; font-weight: 900; color: var(--accent); opacity: 0.15; line-height: 1; }
+.part-title { font-size: 28px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin-top: -20px; }
+.part-line { width: 60px; height: 3px; background: var(--accent); margin-top: 20px; }
+
+/* Content slides */
+.slide-content { gap: 0; }
+.slide-header { display: flex; align-items: center; gap: 16px; margin-bottom: 40px; }
+.slide-chip { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); background: var(--accent-glow); padding: 4px 12px; border-radius: 4px; border: 1px solid rgba(255,77,0,0.2); }
+.slide-title-text { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 36px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Code block inside card */
+.code-block {
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--gray);
+  white-space: pre;
+}
+.code-block .hl { color: var(--white); font-weight: 600; }
+.code-block .ac { color: var(--accent); font-weight: 600; }
+.code-block .gr { color: var(--green); }
+.code-block .bl { color: var(--blue); }
+.code-block .dm { color: var(--gray2); }
+
+/* Bullet list */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+.bullet-list li { display: flex; gap: 16px; align-items: flex-start; font-size: 18px; line-height: 1.6; color: var(--gray); }
+.bullet-list li::before { content: ''; min-width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 10px; }
+.bullet-list li strong { color: var(--white); font-weight: 600; }
+
+/* Two column */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+.col-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; }
+.col-card.accent { border-color: rgba(255,77,0,0.3); background: linear-gradient(135deg, var(--surface), rgba(255,77,0,0.05)); }
+.col-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gray2); margin-bottom: 16px; }
+.col-label.accent-label { color: var(--accent); }
+
+/* Table */
+.table-grid { display: grid; gap: 2px; flex: 1; }
+.table-row { display: grid; grid-template-columns: 180px 1fr; gap: 2px; }
+.table-row.header { margin-bottom: 8px; }
+.table-cell { padding: 10px 16px; font-size: 15px; color: var(--gray); font-family: var(--mono); }
+.table-cell.label { color: var(--accent); font-weight: 600; background: var(--surface); border-radius: 6px; }
+.table-cell.header-cell { color: var(--gray2); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--font); }
+
+/* Closing */
+.slide-closing { align-items: center; justify-content: center; text-align: center; }
+.closing-main { font-size: 36px; font-weight: 700; margin-bottom: 32px; }
+.closing-body { font-size: 22px; color: var(--gray); line-height: 1.8; font-weight: 300; }
+.closing-cta { font-size: 28px; font-weight: 800; color: var(--accent); margin-top: 48px; }
+
+/* Flow diagram */
+.flow { display: flex; align-items: center; gap: 0; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+.flow-node { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; font-size: 14px; font-weight: 600; font-family: var(--mono); }
+.flow-node.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+.flow-arrow { color: var(--gray3); font-size: 20px; margin: 0 8px; }
+
+/* Notes */
+.notes { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.92); color: var(--gray); font-size: 14px; padding: 20px 40px; line-height: 1.6; z-index: 50; max-height: 180px; overflow-y: auto; border-top: 1px solid var(--border); }
 .notes.visible { display: block; }
 
-/* ---------- TITLE SLIDE ---------- */
-.slide-title {
-  background: var(--navy);
-  position: relative;
+/* Counter */
+#counter { position: fixed; bottom: 20px; right: 40px; font-size: 13px; color: var(--gray3); font-family: var(--mono); z-index: 10; }
+#nav-hint { position: fixed; bottom: 20px; left: 40px; font-size: 12px; color: var(--gray3); z-index: 10; opacity: 0.5; }
+
+/* SVG decorations */
+.deco-dots { position: absolute; pointer-events: none; opacity: 0.4; }
+.deco-circle { position: absolute; border-radius: 50%; pointer-events: none; }
+
+/* Numbered items */
+.num-item { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
+.num-badge { min-width: 36px; height: 36px; border-radius: 50%; background: var(--accent-glow); border: 1px solid rgba(255,77,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+.num-text { font-size: 17px; line-height: 1.6; color: var(--gray); }
+.num-text strong { color: var(--white); }
+
+@media (max-width: 1300px) {
+  .slide { width: 100vw; height: 100vh; padding: 40px 50px; }
+  .slide-title { padding: 50px; }
+  .title-main { font-size: 40px; }
 }
-
-.title-accent-bar {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 8px;
-  background: var(--cyan);
-}
-
-.title-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 60px 80px 60px 88px;
-  gap: 20px;
-}
-
-.title-main {
-  font-size: 52px;
-  font-weight: 700;
-  line-height: 1.15;
-  color: var(--white);
-  letter-spacing: -0.02em;
-}
-
-.title-sub {
-  font-size: 28px;
-  font-weight: 500;
-  color: var(--cyan);
-  letter-spacing: 0.01em;
-}
-
-.title-meta {
-  margin-top: 8px;
-  font-size: 16px;
-  color: var(--gray2);
-  line-height: 1.7;
-}
-
-.title-bottom-bar {
-  height: 6px;
-  background: var(--cyan);
-  flex-shrink: 0;
-}
-
-/* ---------- PART DIVIDER ---------- */
-.slide-part {
-  background: var(--navy);
-  align-items: center;
-  justify-content: center;
-}
-
-.part-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  text-align: center;
-}
-
-.part-number {
-  font-size: 120px;
-  font-weight: 800;
-  color: var(--cyan);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  opacity: 0.9;
-}
-
-.part-title {
-  font-size: 36px;
-  font-weight: 600;
-  color: var(--white);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.part-line {
-  width: 80px;
-  height: 4px;
-  background: var(--amber);
-  margin-top: 8px;
-}
-
-/* ---------- SLIDE HEADER (shared) ---------- */
-.slide-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px 48px 16px 48px;
-  border-bottom: 1px solid rgba(0,180,216,0.15);
-  flex-shrink: 0;
-}
-
-.slide-num-chip {
-  background: var(--cyan);
-  color: var(--navy);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 4px;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.slide-title-text {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--white);
-  letter-spacing: -0.01em;
-}
-
-/* ---------- CODE SLIDE ---------- */
-.slide-code {
-  background: var(--navy);
-}
-
-.code-container {
-  flex: 1;
-  padding: 20px 48px 28px 48px;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-}
-
-.code-block {
-  background: var(--codebg);
-  border-radius: 8px;
-  padding: 24px 28px;
-  font-family: var(--mono);
-  font-size: 14.5px;
-  line-height: 1.72;
-  color: var(--gray);
-  width: 100%;
-  white-space: pre;
-  overflow: hidden;
-  border-left: 3px solid rgba(0,180,216,0.3);
-}
-
-/* Syntax colors inside code blocks */
-.code-block .cy { color: var(--cyan); font-weight: 600; }
-.code-block .am { color: var(--amber); font-weight: 700; }
-.code-block .line-arrow { color: var(--gray); }
-.code-block .section-header { color: var(--white); font-weight: 600; }
-
-/* ---------- BULLET SLIDE ---------- */
-.slide-bullet {
-  background: var(--navy);
-}
-
-.bullet-content {
-  flex: 1;
-  padding: 20px 56px 28px 56px;
-  display: flex;
-  align-items: flex-start;
-  overflow: hidden;
-}
-
-.bullet-list {
-  list-style: none;
-  width: 100%;
-}
-
-.bullet-list li {
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--gray);
-  padding: 5px 0 5px 24px;
-  position: relative;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-
-.bullet-list li::before {
-  content: '·';
-  position: absolute;
-  left: 6px;
-  color: var(--cyan);
-  font-size: 20px;
-  line-height: 1.4;
-}
-
-.bullet-list .key-label {
-  color: var(--cyan);
-  font-weight: 700;
-}
-
-.bullet-list .arrow-item {
-  color: var(--gray2);
-}
-
-.bullet-list .arrow-item .cy {
-  color: var(--cyan);
-}
-
-.bullet-list .am {
-  color: var(--amber);
-  font-weight: 700;
-}
-
-/* ---------- CLOSING SLIDE ---------- */
-.slide-closing {
-  background: var(--navy);
-  align-items: center;
-  justify-content: center;
-}
-
-.closing-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  text-align: center;
-  padding: 60px 100px;
-  max-width: 900px;
-}
-
-.closing-main {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--white);
-  line-height: 1.4;
-}
-
-.closing-body {
-  font-size: 20px;
-  color: var(--gray);
-  line-height: 1.6;
-}
-
-.closing-cta {
-  font-size: 40px;
-  font-weight: 800;
-  color: var(--cyan);
-  margin-top: 16px;
-  letter-spacing: -0.02em;
-}
-
-/* ---------- Progress bar ---------- */
-#progress {
-  position: fixed;
-  top: 0; left: 0;
-  height: 3px;
-  background: var(--cyan);
-  transition: width 0.3s ease;
-  z-index: 1000;
-}
-
-/* ---------- Nav hint ---------- */
-#nav-hint {
-  position: fixed;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
-  color: var(--gray2);
-  opacity: 0.6;
-  pointer-events: none;
-  z-index: 999;
-}
-
 </style>
 </head>
 <body>
+<div class="dot-grid"></div>
 <div id="progress"></div>
 <div id="stage">
+
+<!-- SLIDE 0: TITLE -->
 <section class="slide slide-title" data-index="0">
-  <div class="title-accent-bar"></div>
-  <div class="title-content">
-    <div class="title-main">Agent Optimization &amp; Orchestration</div>
-    <div class="title-sub">for Product Managers</div>
-    <div class="title-meta">
-      Rom Iluz<br>Feb 2026 · Product Meetup<br>github.com/romiluz13/p4p-demo
+  <div class="title-eyebrow">Product Meetup · Feb 2026</div>
+  <div class="title-main">Agent Optimization<br>& Orchestration</div>
+  <div class="title-sub">for Product Managers</div>
+  <div class="title-meta">
+    Rom Iluz<br>
+    <a>github.com/romiluz13/p4p-demo</a>
+  </div>
+  <svg class="title-decoration" width="200" height="200" viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="80" stroke="#FF4D00" stroke-width="1" fill="none" opacity="0.2"/>
+    <circle cx="100" cy="100" r="60" stroke="#FF4D00" stroke-width="1" fill="none" opacity="0.15"/>
+    <circle cx="100" cy="100" r="40" stroke="#FF4D00" stroke-width="1" fill="none" opacity="0.1"/>
+    <circle cx="100" cy="20" r="4" fill="#FF4D00" opacity="0.6"/>
+    <circle cx="180" cy="100" r="4" fill="#FF4D00" opacity="0.6"/>
+    <circle cx="100" cy="180" r="4" fill="#FF4D00" opacity="0.6"/>
+    <circle cx="20" cy="100" r="4" fill="#FF4D00" opacity="0.6"/>
+  </svg>
+  <div class="notes" id="notes-0">"You're here because you've already done the basics. Good." Peer conversation, not a lecture.</div>
+</section>
+
+<!-- SLIDE 1: THE CEILING -->
+<section class="slide slide-content" data-index="1">
+  <div class="slide-header">
+    <span class="slide-chip">Slide 2</span>
+    <span class="slide-title-text">The Ceiling You're Hitting</span>
+  </div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:24px;">
+      <div class="num-item"><div class="num-badge">1</div><div class="num-text"><strong>Sessions start strong, then degrade</strong><br><span style="color:var(--gray2)">Context rot — the model forgets what matters</span></div></div>
+      <div class="num-item"><div class="num-badge">2</div><div class="num-text"><strong>You repeat the same prompts constantly</strong><br><span style="color:var(--gray2)">No persistent workflow</span></div></div>
+      <div class="num-item"><div class="num-badge">3</div><div class="num-text"><strong>Your tools are connected but not talking</strong><br><span style="color:var(--gray2)">MCPs installed, barely used</span></div></div>
+      <div class="num-item"><div class="num-badge">4</div><div class="num-text"><strong>Tasks run sequentially</strong><br><span style="color:var(--gray2)">Single-threaded thinking when you could parallelize</span></div></div>
+    </div>
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);color:var(--accent);font-weight:700;font-size:18px;">This session: fix all four.</div>
+  </div>
+  <div class="notes" id="notes-1">"Which of these do you hit most? Show of hands for each." Calibrate + make them feel seen.</div>
+</section>
+
+<!-- SLIDE 2: AD HOC vs ORCHESTRATED -->
+<section class="slide slide-content" data-index="2">
+  <div class="slide-header">
+    <span class="slide-chip">Slide 3</span>
+    <span class="slide-title-text">What "Orchestrated" Looks Like</span>
+  </div>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-label">Ad Hoc</div>
+      <pre class="code-block"><span class="dm">Open Claude Code
+Re-explain product
+Ask one question
+Wait for answer
+Start over next day
+MCPs available</span></pre>
+    </div>
+    <div class="col-card accent">
+      <div class="col-label accent-label">Orchestrated</div>
+      <pre class="code-block"><span class="hl">Context loads instantly
+Claude knows your product
+Run a 5-step pipeline
+Parallel tasks running
+Yesterday's work is base
+MCPs in active workflows</span></pre>
     </div>
   </div>
-  <div class="title-bottom-bar"></div>
-  <div class="notes" id="notes-0">Acknowledge the room immediately: &quot;You&#x27;re here because you&#x27;ve already done the basics. Good.&quot; This is a peer conversation, not a lecture. Calibrate tone from word one.</div>
+  <div style="text-align:center;margin-top:24px;color:var(--gray);font-size:18px;">Same tool. <span style="color:var(--accent);font-weight:700;">Different practice.</span></div>
+  <div class="notes" id="notes-2">"Orchestration isn't a feature. It's a practice. The tool is the same. What changes is how deliberately you set it up."</div>
 </section>
 
-<section class="slide slide-code" data-index="1">
-  <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 2</span>
-    <span class="slide-title-text">The Ceiling You&#x27;re Hitting</span>
-  </div>
-  <div class="code-container">
-    <pre class="code-block">    You use Claude Code. And you&#x27;ve noticed:
-    <span class="am">①</span> Sessions start strong, then degrade
-       (context rot — the model forgets what matters)
-    <span class="am">②</span> You repeat the same prompts constantly
-       (no persistent workflow)
-    <span class="am">③</span> Your tools are connected but not talking
-       (MCPs installed, barely used)
-    <span class="am">④</span> Tasks run sequentially when they could run
-       in parallel (single-threaded thinking)
-    This session: fix all four.                        </pre>
-  </div>
-  <div class="notes" id="notes-1">Ask the room: &quot;Which of these do you hit most? Show of hands for each.&quot; This calibrates the session AND makes them feel seen. These four are the session spine — you&#x27;ll come back to each.</div>
-</section>
-
-<section class="slide slide-code" data-index="2">
-  <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 3</span>
-    <span class="slide-title-text">What &quot;Orchestrated&quot; Looks Like</span>
-  </div>
-  <div class="code-container">
-    <pre class="code-block">    AD HOC                  ORCHESTRATED
-    Open Claude Code        Context loads instantly
-    Re-explain product      Claude knows your product
-    Ask one question        Run a 5-step pipeline
-    Wait for answer         Parallel tasks running
-    Start over next day     Yesterday&#x27;s work is base
-    MCPs available          MCPs in active workflows
-    Same tool.              Different practice.        </pre>
-  </div>
-  <div class="notes" id="notes-2">&quot;Orchestration isn&#x27;t a feature. It&#x27;s a practice. The tool is the same. What changes is how deliberately you set it up.&quot; The rest of the talk is the practice.</div>
-</section>
-
+<!-- PART 1 -->
 <section class="slide slide-part" data-index="3">
-  <div class="part-content">
-    <div class="part-number">01</div>
-    <div class="part-title">CONTEXT OPTIMIZATION</div>
-    <div class="part-line"></div>
-  </div>
+  <div class="part-num">01</div>
+  <div class="part-title">Context Optimization</div>
+  <div class="part-line"></div>
+  <div class="notes" id="notes-3">Transition to practical section. "Everything degrades because you're filling the context window inefficiently."</div>
 </section>
 
-<section class="slide slide-code" data-index="4">
+<!-- SLIDE 4: CONTEXT BOTTLENECK -->
+<section class="slide slide-content" data-index="4">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 4</span>
+    <span class="slide-chip">Slide 4</span>
     <span class="slide-title-text">Context Is Your Real Bottleneck</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Context window: the fixed resource you manage.
-    What eats it:
-<span class="line-arrow">    <span class="cy">→</span> Long back-and-forth without clearing            </span>
-<span class="line-arrow">    <span class="cy">→</span> Repeating product context every prompt          </span>
-<span class="line-arrow">    <span class="cy">→</span> Pasting the same background each session        </span>
-<span class="line-arrow">    <span class="cy">→</span> Asking Claude to hold too much at once          </span>
-    What happens when it fills: quality degrades.
-    Claude starts guessing. Early context disappears.
-    Context management = session quality management.  </pre>
+  <div class="card">
+    <div style="font-size:20px;color:var(--white);font-weight:600;margin-bottom:24px;">Context window: the fixed resource you manage.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px;">
+      <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:16px;"><span style="color:var(--accent);">→</span> Long back-and-forth without clearing</div>
+      <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:16px;"><span style="color:var(--accent);">→</span> Repeating product context every prompt</div>
+      <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:16px;"><span style="color:var(--accent);">→</span> Pasting the same background each session</div>
+      <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:16px;"><span style="color:var(--accent);">→</span> Asking Claude to hold too much at once</div>
+    </div>
+    <div style="padding:20px 24px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent);">
+      <span style="color:var(--white);font-weight:600;">When it fills: quality degrades.</span><br>
+      <span style="color:var(--gray);">Claude starts guessing. Early context disappears.</span>
+    </div>
   </div>
-  <div class="notes" id="notes-4">&quot;The context window isn&#x27;t infinite. When you fill it without structure, the model deprioritizes what was loaded first. That includes your CLAUDE.md instructions.&quot; Transition: the solution is CLAUDE.md architecture, not longer prompts.</div>
+  <div class="notes" id="notes-4">"The context window isn't infinite. When you fill it without structure, the model deprioritizes what was loaded first. That includes your CLAUDE.md instructions."</div>
 </section>
 
-<section class="slide slide-code" data-index="5">
+<!-- SLIDE 5: CLAUDE.MD LEVELS -->
+<section class="slide slide-content" data-index="5">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 5</span>
-    <span class="slide-title-text">CLAUDE.md as an Orchestration Tool</span>
+    <span class="slide-chip">Slide 5</span>
+    <span class="slide-title-text">CLAUDE.md as Orchestration</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Most CLAUDE.md files are context dumps.
-    The best ones are orchestration documents.
-<span class="section-header">    LEVEL 1 (what most PMs have):                     </span>
-      • Product vision
-      • Personas
-      • Current OKRs
-<span class="section-header">    LEVEL 3 (what this session gives you):            </span>
-      • Context loading sequence (explicit order)
-      • Agent roles defined in the file
-      • Response format rules
-      • Anti-patterns (what Claude should NOT do)
-<span class="line-arrow">      • Trigger <span class="cy">→</span> behavior mappings                   </span></pre>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-label">Level 1 — What most PMs have</div>
+      <ul class="bullet-list" style="margin-top:12px;">
+        <li>Product vision</li>
+        <li>Personas</li>
+        <li>Current OKRs</li>
+      </ul>
+      <div style="margin-top:24px;color:var(--gray2);font-size:14px;">Context dump. Useful. Not orchestration.</div>
+    </div>
+    <div class="col-card accent">
+      <div class="col-label accent-label">Level 3 — What this session gives you</div>
+      <ul class="bullet-list" style="margin-top:12px;">
+        <li><strong>Context loading sequence</strong> (explicit order)</li>
+        <li><strong>Agent roles</strong> defined in the file</li>
+        <li><strong>Response format rules</strong></li>
+        <li><strong>Anti-patterns</strong> (what Claude should NOT do)</li>
+        <li><strong>Trigger → behavior</strong> mappings</li>
+      </ul>
+    </div>
   </div>
-  <div class="notes" id="notes-5">The Level 3 is concrete — next slide shows the actual structure. Most PMs at Level 1 don&#x27;t know what they&#x27;re missing.</div>
+  <div class="notes" id="notes-5">Level 3 is concrete — next slide shows the actual structure. Most PMs at Level 1 don't know what they're missing.</div>
 </section>
 
-<section class="slide slide-code" data-index="6">
+<!-- SLIDE 6: LEVEL 3 STRUCTURE -->
+<section class="slide slide-content" data-index="6">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 6</span>
-    <span class="slide-title-text">The Level 3 CLAUDE.md Structure</span>
+    <span class="slide-chip">Slide 6</span>
+    <span class="slide-title-text">The Level 3 Structure</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">   ## Context Loading Sequence
-   Before ANY task:
-   <span class="am">1.</span> Read context/product-context.md
-   <span class="am">2.</span> Read context/personas.md
-   <span class="am">3.</span> Search notes/ for relevant background
-   <span class="am">4.</span> Read context/tone-and-voice.md
-   <span class="am">5.</span> Check context/examples/ — source of truth
-   ## Agent Roles
-   When writing a PRD: act as a senior PM
-    who has shipped this type of feature before.
-   When analyzing data: act as a PM-trained
-    data analyst who translates numbers to decisions.
-   ## Anti-Patterns
-   NEVER start output with &quot;Certainly!&quot; or &quot;Great!&quot;
-   NEVER use passive voice in spec writing.
-   NEVER include &quot;boilerplate&quot; user stories.          </pre>
+  <div class="card">
+    <pre class="code-block"><span class="ac">## Context Loading Sequence</span>
+<span class="hl">Before ANY task:</span>
+<span class="dm">1.</span> Read context/product-context.md
+<span class="dm">2.</span> Read context/personas.md
+<span class="dm">3.</span> Search notes/ for relevant background
+<span class="dm">4.</span> Read context/tone-and-voice.md
+<span class="dm">5.</span> Check context/examples/
+
+<span class="ac">## Agent Roles</span>
+When writing a PRD: <span class="hl">act as a senior PM who has shipped this type before.</span>
+When analyzing data: <span class="hl">act as a PM-trained analyst. Translate numbers to decisions.</span>
+
+<span class="ac">## Anti-Patterns</span>
+<span class="gr">NEVER</span> start output with "Certainly!" or "Great!"
+<span class="gr">NEVER</span> use passive voice in spec writing.
+<span class="gr">NEVER</span> include "boilerplate" user stories.</pre>
   </div>
-  <div class="notes" id="notes-6">Source: pm-studio (zoekdestep) — a PM workspace designed specifically for this. &quot;The anti-patterns section alone is worth the whole setup. If you&#x27;ve ever gotten Claude output that starts with &#x27;Certainly!&#x27; — this fixes that.&quot;</div>
+  <div class="notes" id="notes-6">"The anti-patterns section alone is worth the whole setup. If you've ever gotten Claude output that starts with 'Certainly!' — this fixes that."</div>
 </section>
 
-<section class="slide slide-code" data-index="7">
+<!-- SLIDE 7: 3 RULES -->
+<section class="slide slide-content" data-index="7">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 7</span>
-    <span class="slide-title-text">Context Hygiene: The 3 Rules</span>
+    <span class="slide-chip">Slide 7</span>
+    <span class="slide-title-text">Context Hygiene: 3 Rules</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Rule 1: Load at the start, not mid-session
-    CLAUDE.md handles this automatically.
-    Don&#x27;t paste context mid-conversation.
-    Start a new session instead.
-    Rule 2: Scope sessions to tasks, not topics
-    Bad: one long session for &quot;Q3 planning&quot;
-    Good: one session per deliverable
-          (PRD, competitive brief, sprint review)
-    Rule 3: Persist decisions, not reasoning
-    After each session: update CLAUDE.md with
-    what was decided — not the conversation trail.
-    Decisions are dense. Conversations are bloated.   </pre>
+  <div style="display:flex;flex-direction:column;gap:20px;flex:1;">
+    <div class="col-card" style="flex:1;display:flex;align-items:center;gap:24px;">
+      <div class="num-badge" style="min-width:48px;height:48px;font-size:20px;">1</div>
+      <div><div style="font-size:18px;font-weight:600;color:var(--white);margin-bottom:4px;">Load at start, not mid-session</div><div style="color:var(--gray);font-size:15px;">CLAUDE.md handles this automatically. Don't paste context mid-conversation. Start a new session instead.</div></div>
+    </div>
+    <div class="col-card" style="flex:1;display:flex;align-items:center;gap:24px;">
+      <div class="num-badge" style="min-width:48px;height:48px;font-size:20px;">2</div>
+      <div><div style="font-size:18px;font-weight:600;color:var(--white);margin-bottom:4px;">Scope sessions to tasks, not topics</div><div style="color:var(--gray);font-size:15px;">Bad: one long session for "Q3 planning"<br>Good: one session per deliverable (PRD, competitive brief, sprint review)</div></div>
+    </div>
+    <div class="col-card" style="flex:1;display:flex;align-items:center;gap:24px;">
+      <div class="num-badge" style="min-width:48px;height:48px;font-size:20px;">3</div>
+      <div><div style="font-size:18px;font-weight:600;color:var(--white);margin-bottom:4px;">Persist decisions, not reasoning</div><div style="color:var(--gray);font-size:15px;">After each session: update CLAUDE.md with what was decided — not the conversation trail. Decisions are dense. Conversations are bloated.</div></div>
+    </div>
   </div>
-  <div class="notes" id="notes-7">&quot;Most PM sessions are one long conversation about five different things. That&#x27;s the worst possible use of context budget. One task. One session. End it. Start fresh.&quot;</div>
+  <div class="notes" id="notes-7">"Most PM sessions are one long conversation about five different things. That's the worst possible use of context budget. One task. One session. End it. Start fresh."</div>
 </section>
 
+<!-- PART 2 -->
 <section class="slide slide-part" data-index="8">
-  <div class="part-content">
-    <div class="part-number">02</div>
-    <div class="part-title">AGENT ORCHESTRATION</div>
-    <div class="part-line"></div>
-  </div>
+  <div class="part-num">02</div>
+  <div class="part-title">Agent Orchestration</div>
+  <div class="part-line"></div>
 </section>
 
-<section class="slide slide-code" data-index="9">
+<!-- SLIDE 8: AGENTS FOR PMS -->
+<section class="slide slide-content" data-index="9">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 8</span>
-    <span class="slide-title-text">Agents for PMs (What This Actually Means)</span>
+    <span class="slide-chip">Slide 8</span>
+    <span class="slide-title-text">Agents for PMs</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    &quot;Agent&quot; in PM context = a specialized Claude
-    session with a defined role, tools, and memory.
-    Agent types PMs actually use:
-    RESEARCHER      Scrapes, synthesizes, reports
-    SPEC WRITER     Drafts grounded in context
-<span class="section-header">    DATA ANALYST    Queries, interprets, recommends   </span>
-    STRATEGIST      Cross-references, prioritizes
-    REVIEWER        Audits output against standards
-    Orchestration = running these in the right
-    order with the right context handed between them. </pre>
+  <div style="font-size:17px;color:var(--gray);margin-bottom:28px;">"Agent" = a specialized Claude session with a defined role, tools, and memory.</div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;flex:1;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">🔍</div>
+      <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:6px;">RESEARCHER</div>
+      <div style="font-size:13px;color:var(--gray);">Scrapes, synthesizes, reports</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">📝</div>
+      <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:6px;">SPEC WRITER</div>
+      <div style="font-size:13px;color:var(--gray);">Drafts grounded in context</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">📊</div>
+      <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:6px;">DATA ANALYST</div>
+      <div style="font-size:13px;color:var(--gray);">Queries, interprets, recommends</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">🎯</div>
+      <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:6px;">STRATEGIST</div>
+      <div style="font-size:13px;color:var(--gray);">Cross-references, prioritizes</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">✓</div>
+      <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:6px;">REVIEWER</div>
+      <div style="font-size:13px;color:var(--gray);">Audits against standards</div>
+    </div>
   </div>
-  <div class="notes" id="notes-9">&quot;You don&#x27;t need to install anything new for this. You&#x27;re already doing it — just ad hoc, without structure. We&#x27;re making the structure explicit.&quot;</div>
+  <div style="text-align:center;margin-top:20px;color:var(--gray);font-size:16px;">Orchestration = running these in the right order with context handed between them.</div>
+  <div class="notes" id="notes-9">"You don't need to install anything new. You're already doing this — just ad hoc, without structure. We're making the structure explicit."</div>
 </section>
 
-<section class="slide slide-code" data-index="10">
+<!-- SLIDE 9: 3 PATTERNS -->
+<section class="slide slide-content" data-index="10">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 9</span>
-    <span class="slide-title-text">The 3 Orchestration Patterns</span>
+    <span class="slide-chip">Slide 9</span>
+    <span class="slide-title-text">3 Orchestration Patterns</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block"><span class="section-header">    PATTERN 1: SEQUENTIAL PIPELINE                    </span>
-<span class="line-arrow">    Research <span class="cy">→</span> Synthesize <span class="cy">→</span> Write spec <span class="cy">→</span> Review       </span>
-    Each step outputs a file. Next step reads it.
-<span class="section-header">    PATTERN 2: PARALLEL RESEARCH                      </span>
-    &quot;Research competitors A, B, C simultaneously&quot;
-    Claude Code&#x27;s Task tool spawns parallel agents.
-    Results merge into a comparison.
-<span class="section-header">    PATTERN 3: SPECIALIST + SYNTHESIZER               </span>
-    Researcher gets the data.
-    Analyst interprets it.
-    PM Strategist writes the recommendation.
-    (3 agents, 3 roles, one compound output)          </pre>
+  <div style="display:flex;flex-direction:column;gap:16px;flex:1;">
+    <div class="col-card" style="flex:1;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><span class="num-badge">1</span><span style="font-size:17px;font-weight:700;">Sequential Pipeline</span></div>
+      <div class="flow">
+        <div class="flow-node active">Research</div><span class="flow-arrow">→</span>
+        <div class="flow-node">Synthesize</div><span class="flow-arrow">→</span>
+        <div class="flow-node">Write Spec</div><span class="flow-arrow">→</span>
+        <div class="flow-node">Review</div>
+      </div>
+      <div style="color:var(--gray2);font-size:13px;text-align:center;">Each step outputs a file. Next step reads it.</div>
+    </div>
+    <div class="col-card" style="flex:1;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><span class="num-badge">2</span><span style="font-size:17px;font-weight:700;">Parallel Research</span></div>
+      <div class="flow">
+        <div class="flow-node active">Prompt</div><span class="flow-arrow">→</span>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div class="flow-node">Agent A</div>
+          <div class="flow-node">Agent B</div>
+          <div class="flow-node">Agent C</div>
+        </div><span class="flow-arrow">→</span>
+        <div class="flow-node active">Synthesis</div>
+      </div>
+    </div>
+    <div class="col-card" style="flex:1;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;"><span class="num-badge">3</span><span style="font-size:17px;font-weight:700;">Specialist + Synthesizer</span></div>
+      <div class="flow">
+        <div class="flow-node">Researcher</div><span class="flow-arrow">→</span>
+        <div class="flow-node">Analyst</div><span class="flow-arrow">→</span>
+        <div class="flow-node active">PM Strategist</div>
+      </div>
+      <div style="color:var(--gray2);font-size:13px;text-align:center;">3 agents, 3 roles, one compound output</div>
+    </div>
   </div>
-  <div class="notes" id="notes-10">Walk through a real example of each. For Sequential: PRD pipeline (next slide) For Parallel: competitive research (audience knows this) For Specialist + Synthesizer: retention analysis → insight → roadmap input</div>
+  <div class="notes" id="notes-10">Walk through real example of each. Sequential: PRD pipeline. Parallel: competitive research. Specialist: retention analysis.</div>
 </section>
 
-<section class="slide slide-code" data-index="11">
+<!-- SLIDE 10: PM PIPELINE -->
+<section class="slide slide-content" data-index="11">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 10</span>
-    <span class="slide-title-text">Live Pattern: The PM Pipeline</span>
+    <span class="slide-chip">Slide 10</span>
+    <span class="slide-title-text">The PM Pipeline</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Task: write a PRD for Feature X
-<span class="section-header">    AD HOC:          &quot;Write a PRD for Feature X&quot;      </span>
-                     [generic output]
-<span class="section-header">    ORCHESTRATED:                                      </span>
-    Step 1 (Researcher): Pull last 30 days of
-             support tickets tagged Feature X
-<span class="line-arrow">             <span class="cy">→</span> save to research/feature-x-pain.md    </span>
-    Step 2 (Analyst): Read research file.
-             What&#x27;s the user&#x27;s actual job to be done?
-<span class="line-arrow">             <span class="cy">→</span> save to research/feature-x-jtbd.md    </span>
-    Step 3 (Spec Writer): Read JTBD + CLAUDE.md.
-             Write PRD using our template.
-<span class="line-arrow">             <span class="cy">→</span> save to specs/feature-x-prd.md        </span>
-    Step 4 (Reviewer): Does the PRD actually solve
-             the pain from the research file?         </pre>
+  <div class="card">
+    <div style="color:var(--gray2);font-size:14px;margin-bottom:20px;">Task: write a PRD for Feature X</div>
+    <pre class="code-block"><span class="ac">Step 1</span> <span class="dm">(Researcher)</span>
+  Pull last 30 days of support tickets tagged Feature X
+  <span class="dm">→ save to</span> <span class="hl">research/feature-x-pain.md</span>
+
+<span class="ac">Step 2</span> <span class="dm">(Analyst)</span>
+  Read research file. What's the user's actual JTBD?
+  <span class="dm">→ save to</span> <span class="hl">research/feature-x-jtbd.md</span>
+
+<span class="ac">Step 3</span> <span class="dm">(Spec Writer)</span>
+  Read JTBD + CLAUDE.md. Write PRD using our template.
+  <span class="dm">→ save to</span> <span class="hl">specs/feature-x-prd.md</span>
+
+<span class="ac">Step 4</span> <span class="dm">(Reviewer)</span>
+  Does the PRD actually solve the pain from the research?</pre>
   </div>
-  <div class="notes" id="notes-11">&quot;Each step outputs a file. The next step reads it. This is the core pattern. Files are your handoff protocol.&quot; The reviewer step catches the most common PRD failure: a spec that&#x27;s technically correct but doesn&#x27;t solve the actual pain.</div>
+  <div style="text-align:center;margin-top:16px;color:var(--gray);font-size:15px;">Each step outputs a file. <span style="color:var(--accent);">Files are your handoff protocol.</span></div>
+  <div class="notes" id="notes-11">"The reviewer step catches the most common PRD failure: a spec that's technically correct but doesn't solve the actual pain."</div>
 </section>
 
-<section class="slide slide-code" data-index="12">
+<!-- SLIDE 11: PARALLEL RESEARCH -->
+<section class="slide slide-content" data-index="12">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 11</span>
+    <span class="slide-chip">Slide 11</span>
     <span class="slide-title-text">Parallel Research in Practice</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    The prompt:
-    &quot;Research Competitor A, B, and C in parallel.
-     For each: changelog last 90 days,
-     top G2 complaints, recent job postings.
-     Save each to research/competitor-[name].md
-     Then synthesize into research/competitive.md&quot;
-    What Claude Code does:
-<span class="line-arrow">    <span class="cy">→</span> Spawns 3 parallel research tasks (Task tool)    </span>
-<span class="line-arrow">    <span class="cy">→</span> Each writes to its own file                     </span>
-<span class="line-arrow">    <span class="cy">→</span> Final synthesis reads all three                 </span>
-    What used to take 3 days: 1-2 hours.
-    What used to require a contractor: a prompt.      </pre>
+  <div class="card">
+    <div style="padding:20px 24px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent);margin-bottom:24px;">
+      <pre class="code-block" style="font-size:14px;"><span class="hl">"Research Competitor A, B, and C in parallel.
+For each: changelog last 90 days, top G2 complaints,
+recent job postings.
+Save each to research/competitor-[name].md
+Then synthesize into research/competitive.md"</span></pre>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> Spawns 3 parallel research tasks (Task tool)</div>
+      <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> Each writes to its own file</div>
+      <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> Final synthesis reads all three</div>
+    </div>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;">
+      <span style="color:var(--gray2);">What used to take 3 days:</span>
+      <span style="color:var(--accent);font-weight:700;">1-2 hours</span>
+    </div>
   </div>
-  <div class="notes" id="notes-12">This is where Bright Data MCP becomes load-bearing. Without it: Claude Code reads local files. With it: the web is your data source. Point to modules/04-mcp-ecosystem.md for full setup reference.</div>
+  <div class="notes" id="notes-12">This is where Bright Data MCP becomes load-bearing. Without it: local files. With it: the web is your data source.</div>
 </section>
 
-<section class="slide slide-code" data-index="13">
+<!-- SLIDE 12: SESSION HANDOFF -->
+<section class="slide slide-content" data-index="13">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 12</span>
+    <span class="slide-chip">Slide 12</span>
     <span class="slide-title-text">Handing Context Between Sessions</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    The #1 orchestration mistake:
-    forgetting that sessions don&#x27;t share memory.
-    The fix: treat files as your shared memory.
-    /project/
-      CLAUDE.md              ← persistent brain
-      context/               ← stable product info
-      notes/                 ← working memory
-      research/              ← session outputs
-      specs/                 ← deliverables
-      decisions/             ← decision log
-    Every session: what does this session produce?
-    Write it to the right folder.
-    Next session: reads the file, not your memory.    </pre>
+  <div style="font-size:17px;color:var(--accent);font-weight:600;margin-bottom:24px;">The #1 orchestration mistake: sessions don't share memory. Files do.</div>
+  <div class="card">
+    <pre class="code-block"><span class="hl">/project/</span>
+  <span class="ac">CLAUDE.md</span>              <span class="dm">← persistent brain</span>
+  <span class="ac">context/</span>               <span class="dm">← stable product info</span>
+  <span class="ac">notes/</span>                 <span class="dm">← working memory</span>
+  <span class="ac">research/</span>              <span class="dm">← session outputs</span>
+  <span class="ac">specs/</span>                 <span class="dm">← deliverables</span>
+  <span class="ac">decisions/</span>             <span class="dm">← decision log</span></pre>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);color:var(--gray);font-size:15px;">
+      Every session: what does this session produce?<br>
+      Write it to the right folder. <span style="color:var(--white);font-weight:600;">Next session reads the file, not your memory.</span>
+    </div>
   </div>
-  <div class="notes" id="notes-13">&quot;Your project folder is your second brain. The structure isn&#x27;t optional — it&#x27;s the handoff protocol between sessions.&quot; Walk through each folder&#x27;s purpose.</div>
+  <div class="notes" id="notes-13">"Your project folder is your second brain. The structure isn't optional — it's the handoff protocol between sessions."</div>
 </section>
 
-<section class="slide slide-code" data-index="14">
+<!-- SLIDE 13: THE HARNESS -->
+<section class="slide slide-content" data-index="14">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 13</span>
-    <span class="slide-title-text">The Harness: What Engineers Have Built for This</span>
+    <span class="slide-chip">Slide 13</span>
+    <span class="slide-title-text">The Harness Concept</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Engineers solved this problem first.
-    They call it a &quot;harness&quot; or &quot;orchestration.&quot;
-    cc-p4p (my PM plugin):
-<span class="line-arrow">    <span class="cy">→</span> 1 router that reads your intent                 </span>
-<span class="line-arrow">    <span class="cy">→</span> 6 specialist agents (plan, build, debug...)     </span>
-<span class="line-arrow">    <span class="cy">→</span> Quality gate (RouterContract) every step        </span>
-<span class="line-arrow">    <span class="cy">→</span> Memory files that persist across sessions       </span>
-    The PM equivalent:
-<span class="line-arrow">    <span class="cy">→</span> CLAUDE.md = the router&#x27;s brain                  </span>
-<span class="line-arrow">    <span class="cy">→</span> Agent roles = specialist agents                 </span>
-<span class="line-arrow">    <span class="cy">→</span> File structure = memory system                  </span>
-<span class="line-arrow">    <span class="cy">→</span> Review step = quality gate                      </span>
-    You don&#x27;t need cc-p4p. You need the PRINCIPLES.   </pre>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-label">cc-p4p (PM Plugin)</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> 1 router that reads your intent</div>
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> 5 specialist agents</div>
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> Quality gate (Router Contract)</div>
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> Memory that persists across sessions</div>
+      </div>
+    </div>
+    <div class="col-card accent">
+      <div class="col-label accent-label">The PM Equivalent (you can build this)</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> CLAUDE.md = the router's brain</div>
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> Agent roles = specialist agents</div>
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> File structure = memory system</div>
+        <div style="display:flex;align-items:center;gap:12px;color:var(--gray);font-size:15px;"><span style="color:var(--accent);">→</span> Review step = quality gate</div>
+      </div>
+    </div>
   </div>
-  <div class="notes" id="notes-14">This is the bridge slide between engineering harnesses and PM practice. &quot;I built cc-p4p for PM workflows. The architecture is: Router → intent detection → specialist → quality gate → memory.&quot; PMs can instantiate this in CLAUDE.md without installing anything. &quot;CLAUDE.md is not the only way. It&#x27;s the foundation. Skills are the expertise layer on top.&quot; Skills fire automatically when relevant — prioritization skill activates when you&#x27;re scoring features, user-research skill activates when you&#x27;re synthesizing interviews. You don&#x27;t invoke them, they show up. The official PM plugin&#x27;s `/write-spec` runs a 5-step workflow: 5 questions → pulls from Jira + Notion + Figma → full PRD. That&#x27;s not a template filler. That&#x27;s a compound workflow triggered by one slash command.</div>
+  <div style="text-align:center;margin-top:20px;color:var(--gray);font-size:16px;">You don't need cc-p4p. You need the <span style="color:var(--accent);font-weight:700;">principles.</span></div>
+  <div class="notes" id="notes-14">"I built cc-p4p for PM workflows. The architecture is: Router → intent detection → specialist → quality gate → memory."</div>
 </section>
 
-<section class="slide slide-part" data-index="15">
-  <div class="part-content">
-    <div class="part-number">03</div>
-    <div class="part-title">MCP WORKFLOWS</div>
-    <div class="part-line"></div>
-  </div>
-</section>
-
-<section class="slide slide-code" data-index="16">
+<!-- SLIDE 13B: SKILL ECOSYSTEM -->
+<section class="slide slide-content" data-index="15">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 14</span>
-    <span class="slide-title-text">MCPs Are Not Features. They&#x27;re Workflow Nodes.</span>
+    <span class="slide-chip">Slide 13B</span>
+    <span class="slide-title-text">The PM Skill Ecosystem</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Most PM MCP usage: &quot;I have Jira connected&quot;
-    Better PM MCP usage: Jira is a node in a flow
-    ISOLATED MCP (what you probably do):
-<span class="line-arrow">    <span class="cy">→</span> Open Claude Code                                </span>
-<span class="line-arrow">    <span class="cy">→</span> &quot;Look at my Jira backlog&quot;                       </span>
-<span class="line-arrow">    <span class="cy">→</span> Read the answer                                 </span>
-<span class="section-header">    MCP AS WORKFLOW NODE:                             </span>
-<span class="line-arrow">    <span class="cy">→</span> Sprint retro trigger                            </span>
-<span class="line-arrow">    <span class="cy">→</span> Read Jira sprint data                           </span>
-<span class="line-arrow">    <span class="cy">→</span> Read Amplitude: feature usage this sprint       </span>
-<span class="line-arrow">    <span class="cy">→</span> Read PRDs from Notion: what we said we&#x27;d build  </span>
-<span class="line-arrow">    <span class="cy">→</span> Compare all three                               </span>
-<span class="line-arrow">    <span class="cy">→</span> Output: planned vs built vs used analysis       </span></pre>
+  <div style="font-size:16px;color:var(--gray);margin-bottom:20px;">CLAUDE.md teaches Claude your product. <span style="color:var(--white);font-weight:600;">Skills teach Claude PM craft.</span> You need both.</div>
+  <div class="card">
+    <pre class="code-block"><span class="ac">Official PM Plugin</span> <span class="dm">(7,700+ ★)</span>
+  /write-spec  /competitive-brief  /roadmap-update
+  /synthesize-research  /metrics-review  /stakeholder-update
+
+<span class="hl">Install the stack in 15 minutes:</span>
+  <span class="ac">→</span> anthropics/knowledge-work-plugins  <span class="dm">(6 commands)</span>
+  <span class="ac">→</span> menkesu/awesome-pm-skills          <span class="dm">(29 skills, 7 modes)</span>
+  <span class="ac">→</span> refoundai/lenny-skills             <span class="dm">(86 skills from Lenny)</span>
+  <span class="ac">→</span> bmad-code-org/BMAD-METHOD          <span class="dm">(PM agent "John")</span>
+
+Skills load lazily. <span class="gr">~100 tokens to decide if relevant.</span>
+Context window stays clean.</pre>
   </div>
-  <div class="notes" id="notes-16">&quot;Every MCP is a data source. Orchestration = combining data sources into insights.&quot; This is the highest-leverage PM use of MCPs. Single MCP = data retrieval. Multiple MCPs = intelligence.</div>
+  <div class="notes" id="notes-15">"Skills fire automatically when relevant — prioritization skill activates when you're scoring features. You don't invoke them, they show up."</div>
 </section>
 
-<section class="slide slide-code" data-index="17">
+<!-- PART 3 -->
+<section class="slide slide-part" data-index="16">
+  <div class="part-num">03</div>
+  <div class="part-title">MCP Workflows</div>
+  <div class="part-line"></div>
+</section>
+
+<!-- SLIDE 14: MCP AS WORKFLOW NODES -->
+<section class="slide slide-content" data-index="17">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 15</span>
+    <span class="slide-chip">Slide 14</span>
+    <span class="slide-title-text">MCPs Are Workflow Nodes</span>
+  </div>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-label">Isolated MCP</div>
+      <pre class="code-block"><span class="dm">Open Claude Code
+"Look at my Jira backlog"
+Read the answer
+Done.</span></pre>
+    </div>
+    <div class="col-card accent">
+      <div class="col-label accent-label">MCP as Workflow Node</div>
+      <pre class="code-block"><span class="hl">Sprint retro trigger</span>
+<span class="ac">→</span> Read Jira sprint data
+<span class="ac">→</span> Read Amplitude: feature usage
+<span class="ac">→</span> Read Notion: what we planned
+<span class="ac">→</span> Compare all three
+<span class="ac">→</span> <span class="gr">planned vs built vs used</span></pre>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:20px;color:var(--gray);font-size:16px;">Single MCP = data retrieval. Multiple MCPs = <span style="color:var(--accent);font-weight:700;">intelligence.</span></div>
+  <div class="notes" id="notes-17">"Every MCP is a data source. Orchestration = combining data sources into insights."</div>
+</section>
+
+<!-- SLIDE 15: 5 COMPOUND WORKFLOWS -->
+<section class="slide slide-content" data-index="18">
+  <div class="slide-header">
+    <span class="slide-chip">Slide 15</span>
     <span class="slide-title-text">5 Compound MCP Workflows</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    <span class="am">1.</span> SPRINT HEALTH CHECK
-       Jira (tickets) + Amplitude (usage) + Git
-<span class="line-arrow">       <span class="cy">→</span> &quot;Is what we shipped actually being used?&quot;    </span>
-    <span class="am">2.</span> COMPETITIVE INTELLIGENCE PIPELINE
-<span class="line-arrow">       Bright Data (scrape) <span class="cy">→</span> synthesis <span class="cy">→</span> Notion      </span>
-<span class="line-arrow">       <span class="cy">→</span> auto-updated competitive tracker             </span>
-    <span class="am">3.</span> USER RESEARCH SYNTHESIS
-       Intercom/support tool + survey tool
-<span class="line-arrow">       <span class="cy">→</span> pattern extraction <span class="cy">→</span> PRD input               </span>
-    <span class="am">4.</span> ROADMAP VALIDATION
-       Jira (committed items) + customer feedback
-       + Amplitude (actual usage patterns)
-<span class="line-arrow">       <span class="cy">→</span> &quot;Are we building the right things?&quot;          </span>
-    <span class="am">5.</span> RELEASE IMPACT ANALYSIS
-       Git (what shipped) + Amplitude (before/after)
-<span class="line-arrow">       <span class="cy">→</span> &quot;Did the release move the metrics?&quot;          </span></pre>
+  <div style="display:flex;flex-direction:column;gap:10px;flex:1;">
+    <div style="display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 20px;">
+      <span class="num-badge">1</span>
+      <div><span style="color:var(--accent);font-weight:600;font-size:14px;">SPRINT HEALTH CHECK</span><br><span style="color:var(--gray);font-size:14px;">Jira + Amplitude + Git → "Is what we shipped actually being used?"</span></div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 20px;">
+      <span class="num-badge">2</span>
+      <div><span style="color:var(--accent);font-weight:600;font-size:14px;">COMPETITIVE INTELLIGENCE</span><br><span style="color:var(--gray);font-size:14px;">Bright Data (scrape) → synthesis → Notion → auto-updated tracker</span></div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 20px;">
+      <span class="num-badge">3</span>
+      <div><span style="color:var(--accent);font-weight:600;font-size:14px;">USER RESEARCH SYNTHESIS</span><br><span style="color:var(--gray);font-size:14px;">Intercom/support + surveys → pattern extraction → PRD input</span></div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 20px;">
+      <span class="num-badge">4</span>
+      <div><span style="color:var(--accent);font-weight:600;font-size:14px;">ROADMAP VALIDATION</span><br><span style="color:var(--gray);font-size:14px;">Jira + customer feedback + Amplitude → "Are we building the right things?"</span></div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 20px;">
+      <span class="num-badge">5</span>
+      <div><span style="color:var(--accent);font-weight:600;font-size:14px;">RELEASE IMPACT</span><br><span style="color:var(--gray);font-size:14px;">Git (what shipped) + Amplitude (before/after) → "Did it move the metrics?"</span></div>
+    </div>
   </div>
-  <div class="notes" id="notes-17">Walk one of these in detail (audience vote which one). Each workflow is a multi-step prompt + file output chain. See modules/04-mcp-ecosystem.md for full prompt templates.</div>
+  <div class="notes" id="notes-18">Walk one in detail (audience vote). Each workflow is a multi-step prompt + file output chain.</div>
 </section>
 
-<section class="slide slide-code" data-index="18">
+<!-- SLIDE 16: ARCHITECTURE -->
+<section class="slide slide-content" data-index="19">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 16</span>
-    <span class="slide-title-text">Building a Compound Workflow (Live)</span>
-  </div>
-  <div class="code-container">
-    <pre class="code-block"><span class="section-header">    DEMO: Sprint Health Check                         </span>
-    &quot;This sprint we shipped [A], [B], [C].
-     Step 1: Read Jira — what were the tickets?
-     Step 2: Read Amplitude — was each used?
-             Metric: DAU on each feature for
-             7 days post-release vs. baseline.
-     Step 3: For any feature where usage &lt;30%
-             of expected: write a 1-paragraph
-             hypothesis of what went wrong.
-     Step 4: Save to notes/sprint-[N]-health.md&quot;
-    [DEMO — switch to terminal]                       </pre>
-  </div>
-  <div class="notes" id="notes-18">See modules/05-getting-started.md for demo setup. If you don&#x27;t have Amplitude + Jira connected: use the slide-only version. Show the prompt structure. That alone is worth more than a working demo.</div>
-</section>
-
-<section class="slide slide-code" data-index="19">
-  <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 17</span>
+    <span class="slide-chip">Slide 17</span>
     <span class="slide-title-text">The Context-MCP Architecture</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Your full PM orchestration stack:
-<span class="section-header">    PERSISTENT LAYER      CLAUDE.md                   </span>
-    (always loaded)       context/ folder
-<span class="section-header">    DATA LAYER            MCPs (live data)            </span>
-    (session inputs)      Local files (exports)
-<span class="section-header">    PROCESSING LAYER      Agent roles in CLAUDE.md    </span>
-    (what Claude does)    Sequential / parallel
-<span class="section-header">    OUTPUT LAYER          specs/ research/ decisions/ </span>
-    (session outputs)     (files for next session)
-    This stack replaces:
-    5 open tabs + 3 copy-pastes + 2 export CSVs      </pre>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;">
+      <div style="padding:16px;background:var(--accent-glow);border-radius:8px;border:1px solid rgba(255,77,0,0.2);"><div style="font-size:11px;font-weight:600;letter-spacing:2px;color:var(--accent);margin-bottom:8px;">PERSISTENT</div><div style="color:var(--gray);font-size:14px;">CLAUDE.md<br>context/ folder</div></div>
+      <div style="display:flex;align-items:center;color:var(--gray2);font-size:14px;">Always loaded. Survives session restarts.</div>
+      <div style="padding:16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);"><div style="font-size:11px;font-weight:600;letter-spacing:2px;color:var(--blue);margin-bottom:8px;">DATA LAYER</div><div style="color:var(--gray);font-size:14px;">MCPs (live data)<br>Local files (exports)</div></div>
+      <div style="display:flex;align-items:center;color:var(--gray2);font-size:14px;">Session inputs. Fresh data each time.</div>
+      <div style="padding:16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);"><div style="font-size:11px;font-weight:600;letter-spacing:2px;color:var(--green);margin-bottom:8px;">PROCESSING</div><div style="color:var(--gray);font-size:14px;">Agent roles<br>Sequential / parallel</div></div>
+      <div style="display:flex;align-items:center;color:var(--gray2);font-size:14px;">What Claude does with the data.</div>
+      <div style="padding:16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);"><div style="font-size:11px;font-weight:600;letter-spacing:2px;color:var(--white);margin-bottom:8px;">OUTPUT</div><div style="color:var(--gray);font-size:14px;">specs/ research/<br>decisions/</div></div>
+      <div style="display:flex;align-items:center;color:var(--gray2);font-size:14px;">Files for the next session.</div>
+    </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);color:var(--gray);font-size:15px;text-align:center;">This replaces: <span style="color:var(--accent);">5 open tabs + 3 copy-pastes + 2 export CSVs</span></div>
   </div>
-  <div class="notes" id="notes-19">This is the architecture diagram. Draw it on a whiteboard if you can. &quot;Every PM I know has 5 tabs open doing this manually. This is the same thing, with Claude as the glue layer.&quot;</div>
+  <div class="notes" id="notes-19">"Every PM I know has 5 tabs open doing this manually. This is the same thing, with Claude as the glue layer."</div>
 </section>
 
+<!-- PART 4 -->
 <section class="slide slide-part" data-index="20">
-  <div class="part-content">
-    <div class="part-number">04</div>
-    <div class="part-title">ADVANCED PATTERNS</div>
-    <div class="part-line"></div>
-  </div>
+  <div class="part-num">04</div>
+  <div class="part-title">Advanced Patterns</div>
+  <div class="part-line"></div>
 </section>
 
-<section class="slide slide-code" data-index="21">
+<!-- SLIDE 18: REVIEW LOOP -->
+<section class="slide slide-content" data-index="21">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 18</span>
-    <span class="slide-title-text">The Review Loop: Don&#x27;t Ship Bad Output</span>
+    <span class="slide-chip">Slide 18</span>
+    <span class="slide-title-text">The Review Loop</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    The most underused PM technique:
-    asking Claude to review its own output.
-    After every major output, add:
-    &quot;Now read this as the skeptical VP of Product.
-     What are the 3 weakest points?
-     Where would a senior engineer push back?
-     What assumption are we making that might fail?&quot;
-    This is a mini Review Arena.
-    Engineers do this with 5 parallel reviewers.
-    You can do it in one extra prompt.                </pre>
+  <div style="font-size:17px;color:var(--gray);margin-bottom:24px;">The most underused PM technique: asking Claude to review its own output.</div>
+  <div class="card">
+    <div style="padding:20px 24px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent);margin-bottom:20px;">
+      <pre class="code-block" style="font-size:14px;"><span class="hl">"Now read this as the skeptical VP of Product.
+What are the 3 weakest points?
+Where would a senior engineer push back?
+What assumption are we making that might fail?"</span></pre>
+    </div>
+    <div style="color:var(--gray);font-size:15px;line-height:1.8;">
+      This is a mini <span style="color:var(--accent);font-weight:600;">Review Arena.</span><br>
+      Engineers do this with 5 parallel reviewers.<br>
+      You can do it in <span style="color:var(--white);font-weight:600;">one extra prompt.</span>
+    </div>
   </div>
-  <div class="notes" id="notes-21">&quot;The cc-teams plugin does this with multiple agents simultaneously. You can approximate it with one agent and a perspective-shift prompt. Same effect, simpler setup.&quot;</div>
+  <div class="notes" id="notes-21">"The cc-teams plugin does this with multiple agents simultaneously. You can approximate it with one agent and a perspective-shift prompt."</div>
 </section>
 
-<section class="slide slide-code" data-index="22">
+<!-- SLIDE 19: AGENT ROLES -->
+<section class="slide slide-content" data-index="22">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 19</span>
+    <span class="slide-chip">Slide 19</span>
     <span class="slide-title-text">PM Agent Roles Worth Defining</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Define these in your CLAUDE.md:
-<span class="line-arrow">    /research  <span class="cy">→</span> &quot;Act as a rigorous researcher.       </span>
-                 Cite sources. Flag uncertainty.&quot;
-<span class="line-arrow">    /spec      <span class="cy">→</span> &quot;Act as a senior PM who&#x27;s shipped    </span>
-                 this feature type before. Be
-                 specific. Use our template.&quot;
-<span class="line-arrow">    /data      <span class="cy">→</span> &quot;Act as a PM-trained data analyst.   </span>
-                 Translate numbers to decisions.
-                 Never bury the lede.&quot;
-<span class="line-arrow">    /devil     <span class="cy">→</span> &quot;Act as the skeptical VP who will    </span>
-                 question every assumption in this.&quot;
-    These are slash commands you define.
-    No plugin required.                               </pre>
+  <div class="card">
+    <pre class="code-block"><span class="ac">/research</span>  <span class="dm">→</span> <span class="hl">"Act as a rigorous researcher.</span>
+             <span class="hl">Cite sources. Flag uncertainty."</span>
+
+<span class="ac">/spec</span>      <span class="dm">→</span> <span class="hl">"Act as a senior PM who's shipped</span>
+             <span class="hl">this feature type before. Be specific."</span>
+
+<span class="ac">/data</span>      <span class="dm">→</span> <span class="hl">"Act as a PM-trained data analyst.</span>
+             <span class="hl">Translate numbers to decisions."</span>
+
+<span class="ac">/devil</span>     <span class="dm">→</span> <span class="hl">"Act as the skeptical VP who will</span>
+             <span class="hl">question every assumption in this."</span></pre>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);color:var(--gray);font-size:15px;">
+      These are slash commands <span style="color:var(--white);font-weight:600;">you define in CLAUDE.md.</span> No plugin required.
+    </div>
   </div>
-  <div class="notes" id="notes-22">&quot;You put these in CLAUDE.md as instructions. When you type /spec, Claude knows what mode to enter. It&#x27;s a custom command system built from plain text.&quot;</div>
+  <div class="notes" id="notes-22">"When you type /spec, Claude knows what mode to enter. It's a custom command system built from plain text."</div>
 </section>
 
-<section class="slide slide-code" data-index="23">
+<!-- SLIDE 21: BEFORE/AFTER -->
+<section class="slide slide-content" data-index="23">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 20</span>
-    <span class="slide-title-text">What the Full PM Harness Looks Like</span>
+    <span class="slide-chip">Slide 21</span>
+    <span class="slide-title-text">The Before / After</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    product-org-os (open source, ~13 agents):
-<span class="line-arrow">    CPO agent          <span class="cy">→</span> strategic bets               </span>
-<span class="line-arrow">    VP Product agent   <span class="cy">→</span> roadmap, trade-offs          </span>
-<span class="line-arrow">    Director PM agent  <span class="cy">→</span> execution, dependencies      </span>
-<span class="line-arrow">    PM agent           <span class="cy">→</span> day-to-day decisions         </span>
-<span class="line-arrow">    Research agent     <span class="cy">→</span> user research synthesis      </span>
-<span class="line-arrow">    Data agent         <span class="cy">→</span> metric interpretation        </span>
-    + 7 more roles
-    160+ commands. Role-based context switching.
-    You don&#x27;t have to install this.
-    But knowing it exists shows you the ceiling.      </pre>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-label">Before Orchestration</div>
+      <pre class="code-block"><span class="dm">Open Claude Code
+Explain context (again)
+One prompt, one answer
+Copy output to Notion
+Next session: start over</span></pre>
+    </div>
+    <div class="col-card accent">
+      <div class="col-label accent-label">After</div>
+      <pre class="code-block"><span class="hl">Open project folder
+Context loads automatically
+Multi-step pipeline runs
+Output saves to /specs
+Next session reads yesterday's files
+MCPs feed live data into every step</span></pre>
+    </div>
   </div>
-  <div class="notes" id="notes-23">&quot;This is what fully engineered looks like. A PM who built a 13-agent system for their entire product org. Most of you don&#x27;t need this. But going from Level 1 to Level 2 is 4-5 hours of CLAUDE.md work.&quot;</div>
+  <div style="text-align:center;margin-top:24px;font-size:20px;">Time delta: the same work, <span style="color:var(--accent);font-weight:800;">60-70% faster.</span></div>
+  <div class="notes" id="notes-23">"60-70% faster is consistent with reported PM outcomes. Your mileage will vary. The pattern holds."</div>
 </section>
 
-<section class="slide slide-code" data-index="24">
+<!-- SLIDE 22: SETUP SPRINT -->
+<section class="slide slide-content" data-index="24">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 21</span>
-    <span class="slide-title-text">The Before/After</span>
-  </div>
-  <div class="code-container">
-    <pre class="code-block">    BEFORE orchestration:
-<span class="line-arrow">    <span class="cy">→</span> Open Claude Code                                </span>
-<span class="line-arrow">    <span class="cy">→</span> Explain context (again)                         </span>
-<span class="line-arrow">    <span class="cy">→</span> One prompt, one answer                          </span>
-<span class="line-arrow">    <span class="cy">→</span> Copy output to Notion                          </span>
-<span class="line-arrow">    <span class="cy">→</span> Next session: start over                        </span>
-<span class="section-header">    AFTER:                                             </span>
-<span class="line-arrow">    <span class="cy">→</span> Open project folder                             </span>
-<span class="line-arrow">    <span class="cy">→</span> Context loads automatically                     </span>
-<span class="line-arrow">    <span class="cy">→</span> Multi-step pipeline runs                        </span>
-<span class="line-arrow">    <span class="cy">→</span> Output saves to /specs or /research             </span>
-<span class="line-arrow">    <span class="cy">→</span> Next session reads yesterday&#x27;s files            </span>
-<span class="line-arrow">    <span class="cy">→</span> MCPs feed live data into every step             </span>
-    Time delta: the same work, 60-70% faster.         </pre>
-  </div>
-  <div class="notes" id="notes-24">Don&#x27;t claim a specific number you can&#x27;t prove. &quot;60-70% faster&quot; is consistent with reported PM outcomes. If the audience pushes back: &quot;Your mileage will vary. The pattern holds.&quot;</div>
-</section>
-
-<section class="slide slide-code" data-index="25">
-  <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 22</span>
+    <span class="slide-chip">Slide 22</span>
     <span class="slide-title-text">Your Setup Sprint</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block"><span class="line-arrow">    4 hours this week <span class="cy">→</span> permanent leverage            </span>
-    Hour 1: Upgrade your CLAUDE.md to Level 3
-<span class="line-arrow">      <span class="cy">→</span> Context loading sequence + agent roles        </span>
-<span class="line-arrow">      <span class="cy">→</span> Anti-patterns + slash command definitions     </span>
-    Hour 2: Install the PM skill stack
-<span class="line-arrow">      <span class="cy">→</span> Official PM plugin (6 slash commands)         </span>
-<span class="line-arrow">      <span class="cy">→</span> menkesu + lenny-skills + assimovt             </span>
-<span class="line-arrow">      <span class="cy">→</span> Test: /product-management:write-spec          </span>
-    Hour 3: Wire one compound MCP workflow
-<span class="line-arrow">      <span class="cy">→</span> Pick Workflow 1-5 from Slide 15              </span>
-<span class="line-arrow">      <span class="cy">→</span> Write the prompt. Run it. Save the output.   </span>
-    Hour 4: Build your folder structure + agents
-<span class="line-arrow">      <span class="cy">→</span> context/ notes/ research/ specs/ decisions/   </span>
-<span class="line-arrow">      <span class="cy">→</span> Test with a real task you have today          </span></pre>
+  <div style="font-size:22px;font-weight:700;color:var(--accent);margin-bottom:28px;">4 hours this week → permanent leverage</div>
+  <div style="display:flex;flex-direction:column;gap:14px;flex:1;">
+    <div style="display:flex;gap:20px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 24px;">
+      <div style="min-width:60px;font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono);">HOUR 1</div>
+      <div><span style="color:var(--white);font-weight:600;">Upgrade your CLAUDE.md to Level 3</span><br><span style="color:var(--gray);font-size:14px;">Context loading sequence + agent roles + anti-patterns</span></div>
+    </div>
+    <div style="display:flex;gap:20px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 24px;">
+      <div style="min-width:60px;font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono);">HOUR 2</div>
+      <div><span style="color:var(--white);font-weight:600;">Install the PM skill stack</span><br><span style="color:var(--gray);font-size:14px;">Official PM plugin + menkesu + lenny-skills</span></div>
+    </div>
+    <div style="display:flex;gap:20px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 24px;">
+      <div style="min-width:60px;font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono);">HOUR 3</div>
+      <div><span style="color:var(--white);font-weight:600;">Wire one compound MCP workflow</span><br><span style="color:var(--gray);font-size:14px;">Pick one from Slide 15. Write the prompt. Run it. Save the output.</span></div>
+    </div>
+    <div style="display:flex;gap:20px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 24px;">
+      <div style="min-width:60px;font-size:13px;font-weight:700;color:var(--accent);font-family:var(--mono);">HOUR 4</div>
+      <div><span style="color:var(--white);font-weight:600;">Build your folder structure + test</span><br><span style="color:var(--gray);font-size:14px;">context/ notes/ research/ specs/ decisions/ — test with a real task</span></div>
+    </div>
   </div>
-  <div class="notes" id="notes-25">Make this concrete. &quot;Hour 1&quot; not &quot;step 1.&quot; They have context from the session. This is the implementation path.</div>
+  <div class="notes" id="notes-24">"Hour 1. Not step 1. Not 'some time this week.' They have context from the session. This is the path."</div>
 </section>
 
-<section class="slide slide-code" data-index="26">
+<!-- SLIDE 23: RESOURCES -->
+<section class="slide slide-content" data-index="25">
   <div class="slide-header">
-    <span class="slide-num-chip">SLIDE 23</span>
+    <span class="slide-chip">Slide 23</span>
     <span class="slide-title-text">Resources</span>
   </div>
-  <div class="code-container">
-    <pre class="code-block">    Tonight&#x27;s demo + prompts:
-<span class="line-arrow">    <span class="cy">→</span> github.com/romiluz13/p4p-demo                   </span>
-    Install the plugin:
-<span class="line-arrow">    <span class="cy">→</span> /plugin marketplace add romiluz13/cc-p4p        </span>
-<span class="line-arrow">    <span class="cy">→</span> /plugin install cc-p4p@romiluz13                </span>
-    PM knowledge base:
-<span class="line-arrow">    <span class="cy">→</span> github.com/romiluz13/CC-PM                      </span>
-    Skills &amp; Plugins:
-<span class="line-arrow">    <span class="cy">→</span> Official PM Plugin (7,700+ ★)                   </span>
-      github.com/anthropics/knowledge-work-plugins
-<span class="line-arrow">    <span class="cy">→</span> Lenny&#x27;s 86 PM skills: refoundai/lenny-skills    </span>
-<span class="line-arrow">    <span class="cy">→</span> Product Org OS: yohayetsion/product-org-os      </span>
-    Orchestration reference:
-<span class="line-arrow">    <span class="cy">→</span> cc10x (engineering): github.com/romiluz13/cc10x </span></pre>
+  <div class="card">
+    <pre class="code-block"><span class="ac">Tonight's demo + prompts:</span>
+  <span class="hl">github.com/romiluz13/p4p-demo</span>
+
+<span class="ac">Install the plugin:</span>
+  /plugin marketplace add romiluz13/cc-p4p
+  /plugin install cc-p4p@romiluz13
+
+<span class="ac">PM knowledge base:</span>
+  <span class="hl">github.com/romiluz13/CC-PM</span>
+
+<span class="ac">Skills & Plugins:</span>
+  <span class="dm">→</span> Official PM Plugin (7,700+ ★)
+    github.com/anthropics/knowledge-work-plugins
+  <span class="dm">→</span> Lenny's 86 PM skills: refoundai/lenny-skills
+  <span class="dm">→</span> Product Org OS: yohayetsion/product-org-os
+
+<span class="ac">Engineering orchestration:</span>
+  <span class="dm">→</span> cc10x: github.com/romiluz13/cc10x</pre>
   </div>
-  <div class="notes" id="notes-26">Leave this up during Q&amp;A.</div>
+  <div class="notes" id="notes-25">Leave this up during Q&A.</div>
 </section>
 
-<section class="slide slide-closing" data-index="27">
-  <div class="closing-content">
-<div class="closing-main">You already know how to use Claude Code.</div>
-<div class="closing-body">The PMs who will be significantly faster</div>
-<div class="closing-body">in 6 months aren&#x27;t learning new tools.</div>
-<div class="closing-body">They&#x27;re engineering the tools they already have.</div>
-<div class="closing-body">CLAUDE.md that thinks.</div>
-<div class="closing-body">Skills that encode PM craft.</div>
-<div class="closing-body">Sessions with structure.</div>
-<div class="closing-body">MCPs that talk to each other.</div>
-<div class="closing-cta">Four hours this week.</div>
+<!-- SLIDE 24: CLOSE -->
+<section class="slide slide-closing" data-index="26">
+  <svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.05;" width="400" height="400" viewBox="0 0 400 400">
+    <circle cx="200" cy="200" r="180" stroke="#FF4D00" stroke-width="1" fill="none"/>
+    <circle cx="200" cy="200" r="140" stroke="#FF4D00" stroke-width="1" fill="none"/>
+    <circle cx="200" cy="200" r="100" stroke="#FF4D00" stroke-width="1" fill="none"/>
+    <circle cx="200" cy="200" r="60" stroke="#FF4D00" stroke-width="1" fill="none"/>
+  </svg>
+  <div style="position:relative;z-index:2;">
+    <div class="closing-main">You already know how to use Claude Code.</div>
+    <div class="closing-body">The PMs who will be significantly faster</div>
+    <div class="closing-body">in 6 months aren't learning new tools.</div>
+    <div class="closing-body" style="color:var(--white);font-weight:500;">They're engineering the tools they already have.</div>
+    <div class="closing-cta">Four hours this week.</div>
   </div>
-  <div class="notes" id="notes-27">&quot;Four hours this week.&quot; Say it once. Then: &quot;What&#x27;s on your mind?&quot; This audience will have tactical questions. Let them drive Q&amp;A. Use this when someone asks &quot;do I need to pay for Figma?&quot; in Q&amp;A. The new Claude Code → Figma direction (Feb 2026) is worth spending time on: &quot;You can now take a screenshot of your live app and push it to Figma as editable frames. Design team sees exactly what shipped. Side-by-side with the original design. No meeting required.&quot; &quot;The design-in-HTML approach sounds complex but it&#x27;s powerful: Claude is excellent at HTML/CSS. You describe the visual style, it designs the slide, browser renders it pixel-perfect, exports to PPTX. You can use your company&#x27;s template with the template-based workflow.&quot; See modules/04-mcp-ecosystem.md for full prompt patterns. Use for technical PMs who ask &quot;how does the parallel thing actually work?&quot; Use if someone asks &quot;do I have to structure everything this way?&quot; Honesty here builds credibility. This slide is gold for PMs who suffer from &quot;we already decided this&quot; recurring conversations. Decision log + CLAUDE.md instruction = never again.</div>
+  <div class="notes" id="notes-26">"Four hours this week." Say it once. Then: "What's on your mind?"</div>
 </section>
+
 </div>
-<div id="counter">1 / 28</div>
-<div id="nav-hint">← → to navigate · N for speaker notes</div>
+<div id="counter">1 / 27</div>
+<div id="nav-hint">← → navigate · N speaker notes</div>
 <script>
-
 (function() {
   const slides = document.querySelectorAll('.slide');
   const counter = document.getElementById('counter');
@@ -934,63 +830,31 @@ html, body {
     progress.style.width = ((current + 1) / total * 100) + '%';
     if (notesVisible) showNotes(current);
   }
-
-  function showNotes(idx) {
-    const n = document.getElementById('notes-' + idx);
-    if (n) n.classList.add('visible');
-  }
-
-  function hideNotes(idx) {
-    const n = document.getElementById('notes-' + idx);
-    if (n) n.classList.remove('visible');
-  }
-
+  function showNotes(i) { const n = document.getElementById('notes-' + i); if (n) n.classList.add('visible'); }
+  function hideNotes(i) { const n = document.getElementById('notes-' + i); if (n) n.classList.remove('visible'); }
   function toggleNotes() {
     notesVisible = !notesVisible;
-    if (notesVisible) showNotes(current);
-    else hideNotes(current);
+    notesVisible ? showNotes(current) : hideNotes(current);
   }
 
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
-      e.preventDefault();
-      show(current + 1);
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
-      e.preventDefault();
-      show(current - 1);
-    } else if (e.key === 'n' || e.key === 'N') {
-      toggleNotes();
-    } else if (e.key === 'Home') {
-      show(0);
-    } else if (e.key === 'End') {
-      show(total - 1);
-    }
-  });
-
-  document.getElementById('stage').addEventListener('click', function(e) {
-    if (e.clientX > window.innerWidth / 2) {
-      show(current + 1);
-    } else {
-      show(current - 1);
-    }
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+    else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); toggleNotes(); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
   });
 
   // Touch support
-  let touchStartX = 0;
-  document.addEventListener('touchstart', function(e) {
-    touchStartX = e.touches[0].clientX;
-  });
+  let touchX = 0;
+  document.addEventListener('touchstart', function(e) { touchX = e.touches[0].clientX; });
   document.addEventListener('touchend', function(e) {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 40) {
-      if (dx < 0) show(current + 1);
-      else show(current - 1);
-    }
+    const diff = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(diff) > 50) { diff < 0 ? show(current + 1) : show(current - 1); }
   });
 
   show(0);
 })();
-
 </script>
 </body>
 </html>
