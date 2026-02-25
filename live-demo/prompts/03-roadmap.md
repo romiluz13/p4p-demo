@@ -1,8 +1,3 @@
-# Prompt 03 — Roadmap
-
-Triggers the ROADMAP workflow. Reads the spec automatically before scoring.
-
----
 We have the spec. Now I need to figure out where Advanced Timeline lands in the Q3 roadmap.
 
 Here's what's competing for engineering capacity:
@@ -20,9 +15,3 @@ Here's what's competing for engineering capacity:
 Q3 total capacity: ~14 weeks of senior eng time (two squads of 3 engineers each, 7-week sprint cycle).
 
 Where does Advanced Timeline land? RICE score each item. Show me what fits in Q3, what doesn't, and what the trade-offs are. Be honest about the assumptions driving the scores.
----
-
-**To adapt for your company:**
-- Replace the 5 competing items with your actual backlog items and honest effort estimates
-- Replace "Q3 total capacity: ~14 weeks" with your actual engineering capacity
-- Keep the framing: "RICE score each item. Show trade-offs. Be honest about assumptions."

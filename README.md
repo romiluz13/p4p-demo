@@ -1,19 +1,8 @@
 # cc-p4p — Claude Code for Product Managers
 
-A PM-grade orchestration system built on Claude Code. It detects workflow intent from natural language, passes structured memory between workflows, and validates handoffs with a machine-readable contract.
+A PM orchestration plugin for Claude Code. You type a natural-language PM request. The plugin detects intent, routes to the right workflow, executes with PM-grade structure, and writes to persistent memory so the next workflow builds on what the last one found.
 
-This repository contains a complete live demo and a getting-started guide.
-
----
-
-## What It Does
-
-You type a natural-language PM request. The system:
-
-1. **Detects intent** — routes to the right workflow (Research, Spec, Roadmap, Communicate, Metrics) without slash commands or prompt engineering
-2. **Executes** — runs a specialized agent with PM-grade output (evidence-graded research, P0/P1/P2 specs, RICE-scored roadmaps)
-3. **Remembers** — writes structured findings to persistent memory files that the next workflow reads automatically
-4. **Validates** — ends every workflow with a machine-readable Router Contract so the system knows what it can and can't do next
+**Plugin source:** [github.com/romiluz13/cc-p4p](https://github.com/romiluz13/cc-p4p)
 
 ---
 
@@ -23,54 +12,36 @@ A Monday morning competitive crisis — handled in 9 minutes.
 
 > *"ClickUp just announced free Gantt charts and timeline views for ALL plans. Enterprise prospects are asking what monday.com's answer is. I need talking points by noon."*
 
-Five workflows run in sequence: competitive research → feature spec → Q3 roadmap prioritization → sales talking points + customer message → success metrics framework.
+Five workflows run in sequence:
 
-The outputs in `example-session/` were generated live in one session. Nothing was written by hand.
-
-**→ [Run it yourself](live-demo/README.md)**
+| # | Workflow | What happens |
+|---|----------|-------------|
+| 1 | RESEARCH | Synthesizes competitive gap with evidence grades. Writes findings to memory. |
+| 2 | SPEC | Reads research automatically. Writes a full PRD grounded in that evidence. |
+| 3 | ROADMAP | Reads the spec. RICE scores 5 competing items. Shows what fits in Q3. |
+| 4 | COMMUNICATE | Reads the roadmap. Writes sales talking points + customer message with confirmed dates only. |
+| 5 | METRICS | Defines leading/lagging indicators, guardrails, account-specific tracking. |
 
 ---
 
-## Run the Demo in 3 Steps
+## Run It
 
 ```bash
 # 1. Install Claude Code
 npm install -g @anthropic-ai/claude-code
 
-# 2. Clone this repo and navigate to the demo
-git clone https://github.com/romiluz13/p4p-demo
-cd p4p-demo/live-demo
-
-# 3. Open Claude Code — context loads automatically
-claude
-```
-
-Then paste the prompts from `live-demo/prompts/` one at a time. Watch the system route, execute, and remember across workflows.
-
----
-
-## Use cc-p4p on Your Own Product
-
-The demo runs on pre-loaded monday.com context. To run on your product:
-
-```bash
-# 1. Install Claude Code
-npm install -g @anthropic-ai/claude-code
-
-# 2. Install the cc-p4p plugin
-# Inside Claude Code, run both:
+# 2. Install the cc-p4p plugin (inside Claude Code)
 /plugin marketplace add romiluz13/cc-p4p
 /plugin install cc-p4p@romiluz13
 
-# 3. Set up your context
-# Copy live-demo/CLAUDE.md → replace monday.com content with your product
-# Copy live-demo/context/ → replace with your personas, metrics, OKRs
-
-# 4. Open Claude Code and start working
+# 3. Navigate to the demo
+cd p4p-demo/live-demo
 claude
 ```
 
-Plugin source: [github.com/romiluz13/cc-p4p](https://github.com/romiluz13/cc-p4p)
+Then open each file in `live-demo/prompts/` and paste the text into Claude Code. Run them in order.
+
+**→ [Full demo script with presenter notes](DEMO-SCRIPT.md)**
 
 ---
 
@@ -78,45 +49,29 @@ Plugin source: [github.com/romiluz13/cc-p4p](https://github.com/romiluz13/cc-p4p
 
 ```
 p4p-demo/
-├── live-demo/          Run the Monday.com crisis demo yourself
-│   ├── CLAUDE.md       The brain — pre-loaded company context
-│   ├── context/        Product metrics, personas, OKRs
-│   └── prompts/        5 natural-language prompts, one per workflow
+├── DEMO-SCRIPT.md          Presenter guide — what to say, what to show, timing
 │
-├── example-session/    Real outputs from a complete session
-│   ├── 01-competitive-synthesis.md
-│   ├── 02-advanced-timeline-prd.md
-│   ├── 03-q3-roadmap-rice.md
-│   ├── 04-sales-talking-points.md
-│   ├── 05-marcus-chen-message.md
-│   └── 06-metrics-framework.md
-│
-└── guide/              Go deeper — installation, MCPs, CLAUDE.md templates, real stories
+└── live-demo/
+    ├── CLAUDE.md           monday.com product context + cc-p4p plugin entry
+    ├── context/
+    │   ├── product-context.md   Vision, OKRs, metrics, Q3 backlog
+    │   ├── personas.md          Three named enterprise personas
+    │   └── tone-and-voice.md    monday.com PM writing style
+    └── prompts/
+        ├── 01-research.md       Paste → triggers RESEARCH workflow
+        ├── 02-spec.md           Paste → triggers SPEC workflow
+        ├── 03-roadmap.md        Paste → triggers ROADMAP workflow
+        ├── 04-communicate.md    Paste → triggers COMMUNICATE workflow
+        └── 05-metrics.md        Paste → triggers METRICS workflow
 ```
 
 ---
 
 ## Use It on Your Own Product
 
-Everything runs on your context, not training data.
-
-**→ [Step-by-step adaptation guide](live-demo/ADAPT-FOR-YOUR-PRODUCT.md)**
-
-Short version:
-1. Replace `live-demo/CLAUDE.md` with your company's product context
+1. Replace `live-demo/CLAUDE.md` with your company's context (keep the `[CC-P4P]` block at the top)
 2. Update `live-demo/context/` with your personas, metrics, and OKRs
-3. Adapt the prompts in `live-demo/prompts/` — swap monday.com for your scenario
-4. Run `claude` — the system routes and remembers using your knowledge base
+3. Adapt the prompts in `live-demo/prompts/` to your scenario
+4. Run `claude` from `live-demo/` — the plugin routes and remembers using your knowledge
 
----
-
-## Learn More
-
-- `guide/01-getting-started.md` — install, first session, what to set up
-- `guide/03-claude-md-for-pms.md` — 3-level CLAUDE.md template system
-- `guide/04-skills-and-plugins.md` — the full PM skill ecosystem
-- `guide/09-real-stories.md` — practitioners using this in production
-
----
-
-*Built with [Claude Code](https://claude.ai/claude-code) + the cc-p4p plugin.*
+The system is only as specific as what you put in. Generic personas → generic output. Named accounts with seat counts and renewal dates → output you could use tomorrow.

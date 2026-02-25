@@ -1,8 +1,3 @@
-# Prompt 05 — Metrics
-
-Triggers the METRICS workflow. Use this after the roadmap, or when someone asks "how do you know if it worked?"
-
----
 Before we ship this, I want to make sure the success metrics in the spec are actually measurable.
 
 The metrics I have right now:
@@ -17,9 +12,3 @@ A few things I'm not sure about:
 - Is there a leading signal from Timeline feature adoption that predicts churn reduction?
 
 Give me the full metrics framework — leading, lagging, account-specific, and guardrails.
----
-
-**To adapt for your company:**
-- Replace the three lagging metrics with your actual baselines and targets
-- Replace "Marcus, Sarah, and Rebecca" with your named accounts
-- Keep the questions — they work for any feature launch

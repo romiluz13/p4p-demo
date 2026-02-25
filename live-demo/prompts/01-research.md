@@ -1,8 +1,3 @@
-# Prompt 01 — Research
-
-Triggers the RESEARCH workflow. Paste into Claude Code.
-
----
 Just got this Slack from the VP of Sales:
 
 "Head's up — ClickUp announced this morning that Gantt charts and Timeline views are now free for ALL plans, including their free tier. We already have two enterprise prospects mentioning it in email threads. I had a call with Meridian Financial (340 seats, renewal in 8 weeks) and they asked me directly: 'What's monday.com's answer to this?' I need talking points by noon. Also saw that Northgate Healthcare and Constellation Brands are asking similar questions in their CSM threads."
@@ -14,10 +9,3 @@ I need to understand what's actually going on here before I can respond. Specifi
 - How urgently do we need to respond?
 
 Can you research this and give me a synthesis of what we know?
----
-
-**To adapt for your company:**
-- Replace "ClickUp" with your competitor
-- Replace "Gantt charts and Timeline views are now free" with what they actually announced
-- Replace "Meridian Financial", "Northgate Healthcare", "Constellation Brands" with your accounts
-- Replace "monday.com" with your product name
