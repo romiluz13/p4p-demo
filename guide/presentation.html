@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Optimization &amp; Orchestration for Product Managers</title>
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:   #0D1B2A;
+  --navy2:  #112233;
+  --codebg: #1A2E40;
+  --cyan:   #00B4D8;
+  --amber:  #FF9F1C;
+  --white:  #FFFFFF;
+  --gray:   #CCD6E0;
+  --gray2:  #8899AA;
+  --font:   system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:   'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+}
+
+html, body {
+  background: #000;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font);
+  color: var(--white);
+}
+
+/* ---------- Slide stage ---------- */
+#stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.slide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1280px;
+  height: 720px;
+  background: var(--navy);
+  overflow: hidden;
+  display: none;
+  flex-direction: column;
+}
+
+.slide.active { display: flex; }
+
+/* Responsive scaling */
+@media (max-aspect-ratio: 16/9) {
+  .slide { transform: translate(-50%, -50%) scale(calc(100vw / 1280)); }
+}
+@media (min-aspect-ratio: 16/9) {
+  .slide { transform: translate(-50%, -50%) scale(calc(100vh / 720)); }
+}
+
+/* ---------- Slide counter ---------- */
+#counter {
+  position: fixed;
+  bottom: 18px;
+  right: 24px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--gray2);
+  letter-spacing: 0.05em;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* ---------- Notes toggle ---------- */
+.notes {
+  display: none;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.88);
+  color: var(--gray);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 14px 28px;
+  border-top: 2px solid var(--cyan);
+  z-index: 100;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.notes.visible { display: block; }
+
+/* ---------- TITLE SLIDE ---------- */
+.slide-title {
+  background: var(--navy);
+  position: relative;
+}
+
+.title-accent-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 8px;
+  background: var(--cyan);
+}
+
+.title-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 80px 60px 88px;
+  gap: 20px;
+}
+
+.title-main {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--white);
+  letter-spacing: -0.02em;
+}
+
+.title-sub {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--cyan);
+  letter-spacing: 0.01em;
+}
+
+.title-meta {
+  margin-top: 8px;
+  font-size: 16px;
+  color: var(--gray2);
+  line-height: 1.7;
+}
+
+.title-bottom-bar {
+  height: 6px;
+  background: var(--cyan);
+  flex-shrink: 0;
+}
+
+/* ---------- PART DIVIDER ---------- */
+.slide-part {
+  background: var(--navy);
+  align-items: center;
+  justify-content: center;
+}
+
+.part-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.part-number {
+  font-size: 120px;
+  font-weight: 800;
+  color: var(--cyan);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  opacity: 0.9;
+}
+
+.part-title {
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.part-line {
+  width: 80px;
+  height: 4px;
+  background: var(--amber);
+  margin-top: 8px;
+}
+
+/* ---------- SLIDE HEADER (shared) ---------- */
+.slide-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 48px 16px 48px;
+  border-bottom: 1px solid rgba(0,180,216,0.15);
+  flex-shrink: 0;
+}
+
+.slide-num-chip {
+  background: var(--cyan);
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.slide-title-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- CODE SLIDE ---------- */
+.slide-code {
+  background: var(--navy);
+}
+
+.code-container {
+  flex: 1;
+  padding: 20px 48px 28px 48px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+}
+
+.code-block {
+  background: var(--codebg);
+  border-radius: 8px;
+  padding: 24px 28px;
+  font-family: var(--mono);
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: var(--gray);
+  width: 100%;
+  white-space: pre;
+  overflow: hidden;
+  border-left: 3px solid rgba(0,180,216,0.3);
+}
+
+/* Syntax colors inside code blocks */
+.code-block .cy { color: var(--cyan); font-weight: 600; }
+.code-block .am { color: var(--amber); font-weight: 700; }
+.code-block .line-arrow { color: var(--gray); }
+.code-block .section-header { color: var(--white); font-weight: 600; }
+
+/* ---------- BULLET SLIDE ---------- */
+.slide-bullet {
+  background: var(--navy);
+}
+
+.bullet-content {
+  flex: 1;
+  padding: 20px 56px 28px 56px;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.bullet-list {
+  list-style: none;
+  width: 100%;
+}
+
+.bullet-list li {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--gray);
+  padding: 5px 0 5px 24px;
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.bullet-list li::before {
+  content: '·';
+  position: absolute;
+  left: 6px;
+  color: var(--cyan);
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.bullet-list .key-label {
+  color: var(--cyan);
+  font-weight: 700;
+}
+
+.bullet-list .arrow-item {
+  color: var(--gray2);
+}
+
+.bullet-list .arrow-item .cy {
+  color: var(--cyan);
+}
+
+.bullet-list .am {
+  color: var(--amber);
+  font-weight: 700;
+}
+
+/* ---------- CLOSING SLIDE ---------- */
+.slide-closing {
+  background: var(--navy);
+  align-items: center;
+  justify-content: center;
+}
+
+.closing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  padding: 60px 100px;
+  max-width: 900px;
+}
+
+.closing-main {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.4;
+}
+
+.closing-body {
+  font-size: 20px;
+  color: var(--gray);
+  line-height: 1.6;
+}
+
+.closing-cta {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--cyan);
+  margin-top: 16px;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Progress bar ---------- */
+#progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: var(--cyan);
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+/* ---------- Nav hint ---------- */
+#nav-hint {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--gray2);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 999;
+}
+
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="stage">
+<section class="slide slide-title" data-index="0">
+  <div class="title-accent-bar"></div>
+  <div class="title-content">
+    <div class="title-main">Agent Optimization &amp; Orchestration</div>
+    <div class="title-sub">for Product Managers</div>
+    <div class="title-meta">
+      [Your name]<br>[Date] · [COMPANY] Product Meetup<br>github.com/romiluz13/cc10x
+    </div>
+  </div>
+  <div class="title-bottom-bar"></div>
+  <div class="notes" id="notes-0">Acknowledge the room immediately: &quot;You&#x27;re here because you&#x27;ve already done the basics. Good.&quot; This is a peer conversation, not a lecture. Calibrate tone from word one.</div>
+</section>
+
+<section class="slide slide-code" data-index="1">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 2</span>
+    <span class="slide-title-text">The Ceiling You&#x27;re Hitting</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    You use Claude Code. And you&#x27;ve noticed:
+    <span class="am">①</span> Sessions start strong, then degrade
+       (context rot — the model forgets what matters)
+    <span class="am">②</span> You repeat the same prompts constantly
+       (no persistent workflow)
+    <span class="am">③</span> Your tools are connected but not talking
+       (MCPs installed, barely used)
+    <span class="am">④</span> Tasks run sequentially when they could run
+       in parallel (single-threaded thinking)
+    This session: fix all four.                        </pre>
+  </div>
+  <div class="notes" id="notes-1">Ask the room: &quot;Which of these do you hit most? Show of hands for each.&quot; This calibrates the session AND makes them feel seen. These four are the session spine — you&#x27;ll come back to each.</div>
+</section>
+
+<section class="slide slide-code" data-index="2">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 3</span>
+    <span class="slide-title-text">What &quot;Orchestrated&quot; Looks Like</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    AD HOC                  ORCHESTRATED
+    Open Claude Code        Context loads instantly
+    Re-explain product      Claude knows your product
+    Ask one question        Run a 5-step pipeline
+    Wait for answer         Parallel tasks running
+    Start over next day     Yesterday&#x27;s work is base
+    MCPs available          MCPs in active workflows
+    Same tool.              Different practice.        </pre>
+  </div>
+  <div class="notes" id="notes-2">&quot;Orchestration isn&#x27;t a feature. It&#x27;s a practice. The tool is the same. What changes is how deliberately you set it up.&quot; The rest of the talk is the practice.</div>
+</section>
+
+<section class="slide slide-part" data-index="3">
+  <div class="part-content">
+    <div class="part-number">01</div>
+    <div class="part-title">CONTEXT OPTIMIZATION</div>
+    <div class="part-line"></div>
+  </div>
+</section>
+
+<section class="slide slide-code" data-index="4">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 4</span>
+    <span class="slide-title-text">Context Is Your Real Bottleneck</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Context window: the fixed resource you manage.
+    What eats it:
+<span class="line-arrow">    <span class="cy">→</span> Long back-and-forth without clearing            </span>
+<span class="line-arrow">    <span class="cy">→</span> Repeating product context every prompt          </span>
+<span class="line-arrow">    <span class="cy">→</span> Pasting the same background each session        </span>
+<span class="line-arrow">    <span class="cy">→</span> Asking Claude to hold too much at once          </span>
+    What happens when it fills: quality degrades.
+    Claude starts guessing. Early context disappears.
+    Context management = session quality management.  </pre>
+  </div>
+  <div class="notes" id="notes-4">&quot;The context window isn&#x27;t infinite. When you fill it without structure, the model deprioritizes what was loaded first. That includes your CLAUDE.md instructions.&quot; Transition: the solution is CLAUDE.md architecture, not longer prompts.</div>
+</section>
+
+<section class="slide slide-code" data-index="5">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 5</span>
+    <span class="slide-title-text">CLAUDE.md as an Orchestration Tool</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Most CLAUDE.md files are context dumps.
+    The best ones are orchestration documents.
+<span class="section-header">    LEVEL 1 (what most PMs have):                     </span>
+      • Product vision
+      • Personas
+      • Current OKRs
+<span class="section-header">    LEVEL 3 (what this session gives you):            </span>
+      • Context loading sequence (explicit order)
+      • Agent roles defined in the file
+      • Response format rules
+      • Anti-patterns (what Claude should NOT do)
+<span class="line-arrow">      • Trigger <span class="cy">→</span> behavior mappings                   </span></pre>
+  </div>
+  <div class="notes" id="notes-5">The Level 3 is concrete — next slide shows the actual structure. Most PMs at Level 1 don&#x27;t know what they&#x27;re missing.</div>
+</section>
+
+<section class="slide slide-code" data-index="6">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 6</span>
+    <span class="slide-title-text">The Level 3 CLAUDE.md Structure</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">   ## Context Loading Sequence
+   Before ANY task:
+   <span class="am">1.</span> Read context/product-context.md
+   <span class="am">2.</span> Read context/personas.md
+   <span class="am">3.</span> Search notes/ for relevant background
+   <span class="am">4.</span> Read context/tone-and-voice.md
+   <span class="am">5.</span> Check context/examples/ — source of truth
+   ## Agent Roles
+   When writing a PRD: act as a senior PM
+    who has shipped this type of feature before.
+   When analyzing data: act as a PM-trained
+    data analyst who translates numbers to decisions.
+   ## Anti-Patterns
+   NEVER start output with &quot;Certainly!&quot; or &quot;Great!&quot;
+   NEVER use passive voice in spec writing.
+   NEVER include &quot;boilerplate&quot; user stories.          </pre>
+  </div>
+  <div class="notes" id="notes-6">Source: pm-studio (zoekdestep) — a PM workspace designed specifically for this. &quot;The anti-patterns section alone is worth the whole setup. If you&#x27;ve ever gotten Claude output that starts with &#x27;Certainly!&#x27; — this fixes that.&quot;</div>
+</section>
+
+<section class="slide slide-code" data-index="7">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 7</span>
+    <span class="slide-title-text">Context Hygiene: The 3 Rules</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Rule 1: Load at the start, not mid-session
+    CLAUDE.md handles this automatically.
+    Don&#x27;t paste context mid-conversation.
+    Start a new session instead.
+    Rule 2: Scope sessions to tasks, not topics
+    Bad: one long session for &quot;Q3 planning&quot;
+    Good: one session per deliverable
+          (PRD, competitive brief, sprint review)
+    Rule 3: Persist decisions, not reasoning
+    After each session: update CLAUDE.md with
+    what was decided — not the conversation trail.
+    Decisions are dense. Conversations are bloated.   </pre>
+  </div>
+  <div class="notes" id="notes-7">&quot;Most PM sessions are one long conversation about five different things. That&#x27;s the worst possible use of context budget. One task. One session. End it. Start fresh.&quot;</div>
+</section>
+
+<section class="slide slide-part" data-index="8">
+  <div class="part-content">
+    <div class="part-number">02</div>
+    <div class="part-title">AGENT ORCHESTRATION</div>
+    <div class="part-line"></div>
+  </div>
+</section>
+
+<section class="slide slide-code" data-index="9">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 8</span>
+    <span class="slide-title-text">Agents for PMs (What This Actually Means)</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    &quot;Agent&quot; in PM context = a specialized Claude
+    session with a defined role, tools, and memory.
+    Agent types PMs actually use:
+    RESEARCHER      Scrapes, synthesizes, reports
+    SPEC WRITER     Drafts grounded in context
+<span class="section-header">    DATA ANALYST    Queries, interprets, recommends   </span>
+    STRATEGIST      Cross-references, prioritizes
+    REVIEWER        Audits output against standards
+    Orchestration = running these in the right
+    order with the right context handed between them. </pre>
+  </div>
+  <div class="notes" id="notes-9">&quot;You don&#x27;t need to install anything new for this. You&#x27;re already doing it — just ad hoc, without structure. We&#x27;re making the structure explicit.&quot;</div>
+</section>
+
+<section class="slide slide-code" data-index="10">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 9</span>
+    <span class="slide-title-text">The 3 Orchestration Patterns</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block"><span class="section-header">    PATTERN 1: SEQUENTIAL PIPELINE                    </span>
+<span class="line-arrow">    Research <span class="cy">→</span> Synthesize <span class="cy">→</span> Write spec <span class="cy">→</span> Review       </span>
+    Each step outputs a file. Next step reads it.
+<span class="section-header">    PATTERN 2: PARALLEL RESEARCH                      </span>
+    &quot;Research competitors A, B, C simultaneously&quot;
+    Claude Code&#x27;s Task tool spawns parallel agents.
+    Results merge into a comparison.
+<span class="section-header">    PATTERN 3: SPECIALIST + SYNTHESIZER               </span>
+    Researcher gets the data.
+    Analyst interprets it.
+    PM Strategist writes the recommendation.
+    (3 agents, 3 roles, one compound output)          </pre>
+  </div>
+  <div class="notes" id="notes-10">Walk through a real example of each. For Sequential: PRD pipeline (next slide) For Parallel: competitive research (audience knows this) For Specialist + Synthesizer: retention analysis → insight → roadmap input</div>
+</section>
+
+<section class="slide slide-code" data-index="11">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 10</span>
+    <span class="slide-title-text">Live Pattern: The PM Pipeline</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Task: write a PRD for Feature X
+<span class="section-header">    AD HOC:          &quot;Write a PRD for Feature X&quot;      </span>
+                     [generic output]
+<span class="section-header">    ORCHESTRATED:                                      </span>
+    Step 1 (Researcher): Pull last 30 days of
+             support tickets tagged Feature X
+<span class="line-arrow">             <span class="cy">→</span> save to research/feature-x-pain.md    </span>
+    Step 2 (Analyst): Read research file.
+             What&#x27;s the user&#x27;s actual job to be done?
+<span class="line-arrow">             <span class="cy">→</span> save to research/feature-x-jtbd.md    </span>
+    Step 3 (Spec Writer): Read JTBD + CLAUDE.md.
+             Write PRD using our template.
+<span class="line-arrow">             <span class="cy">→</span> save to specs/feature-x-prd.md        </span>
+    Step 4 (Reviewer): Does the PRD actually solve
+             the pain from the research file?         </pre>
+  </div>
+  <div class="notes" id="notes-11">&quot;Each step outputs a file. The next step reads it. This is the core pattern. Files are your handoff protocol.&quot; The reviewer step catches the most common PRD failure: a spec that&#x27;s technically correct but doesn&#x27;t solve the actual pain.</div>
+</section>
+
+<section class="slide slide-code" data-index="12">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 11</span>
+    <span class="slide-title-text">Parallel Research in Practice</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    The prompt:
+    &quot;Research Competitor A, B, and C in parallel.
+     For each: changelog last 90 days,
+     top G2 complaints, recent job postings.
+     Save each to research/competitor-[name].md
+     Then synthesize into research/competitive.md&quot;
+    What Claude Code does:
+<span class="line-arrow">    <span class="cy">→</span> Spawns 3 parallel research tasks (Task tool)    </span>
+<span class="line-arrow">    <span class="cy">→</span> Each writes to its own file                     </span>
+<span class="line-arrow">    <span class="cy">→</span> Final synthesis reads all three                 </span>
+    What used to take 3 days: 1-2 hours.
+    What used to require a contractor: a prompt.      </pre>
+  </div>
+  <div class="notes" id="notes-12">This is where Bright Data MCP becomes load-bearing. Without it: Claude Code reads local files. With it: the web is your data source. Point to modules/04-mcp-ecosystem.md for full setup reference.</div>
+</section>
+
+<section class="slide slide-code" data-index="13">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 12</span>
+    <span class="slide-title-text">Handing Context Between Sessions</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    The #1 orchestration mistake:
+    forgetting that sessions don&#x27;t share memory.
+    The fix: treat files as your shared memory.
+    /project/
+      CLAUDE.md              ← persistent brain
+      context/               ← stable product info
+      notes/                 ← working memory
+      research/              ← session outputs
+      specs/                 ← deliverables
+      decisions/             ← decision log
+    Every session: what does this session produce?
+    Write it to the right folder.
+    Next session: reads the file, not your memory.    </pre>
+  </div>
+  <div class="notes" id="notes-13">&quot;Your project folder is your second brain. The structure isn&#x27;t optional — it&#x27;s the handoff protocol between sessions.&quot; Walk through each folder&#x27;s purpose.</div>
+</section>
+
+<section class="slide slide-code" data-index="14">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 13</span>
+    <span class="slide-title-text">The Harness: What Engineers Have Built for This</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Engineers solved this problem first.
+    They call it a &quot;harness&quot; or &quot;orchestration.&quot;
+    cc10x (my plugin):
+<span class="line-arrow">    <span class="cy">→</span> 1 router that reads your intent                 </span>
+<span class="line-arrow">    <span class="cy">→</span> 6 specialist agents (plan, build, debug...)     </span>
+<span class="line-arrow">    <span class="cy">→</span> Quality gate (RouterContract) every step        </span>
+<span class="line-arrow">    <span class="cy">→</span> Memory files that persist across sessions       </span>
+    The PM equivalent:
+<span class="line-arrow">    <span class="cy">→</span> CLAUDE.md = the router&#x27;s brain                  </span>
+<span class="line-arrow">    <span class="cy">→</span> Agent roles = specialist agents                 </span>
+<span class="line-arrow">    <span class="cy">→</span> File structure = memory system                  </span>
+<span class="line-arrow">    <span class="cy">→</span> Review step = quality gate                      </span>
+    You don&#x27;t need cc10x. You need the PRINCIPLES.   </pre>
+  </div>
+  <div class="notes" id="notes-14">This is the bridge slide between engineering harnesses and PM practice. &quot;I built cc10x for engineering workflows. But the architecture is the same. Router → intent detection → specialist → quality gate → memory.&quot; PMs can instantiate this in CLAUDE.md without installing anything. &quot;CLAUDE.md is not the only way. It&#x27;s the foundation. Skills are the expertise layer on top.&quot; Skills fire automatically when relevant — prioritization skill activates when you&#x27;re scoring features, user-research skill activates when you&#x27;re synthesizing interviews. You don&#x27;t invoke them, they show up. The official PM plugin&#x27;s `/write-spec` runs a 5-step workflow: 5 questions → pulls from Jira + Notion + Figma → full PRD. That&#x27;s not a template filler. That&#x27;s a compound workflow triggered by one slash command.</div>
+</section>
+
+<section class="slide slide-part" data-index="15">
+  <div class="part-content">
+    <div class="part-number">03</div>
+    <div class="part-title">MCP WORKFLOWS</div>
+    <div class="part-line"></div>
+  </div>
+</section>
+
+<section class="slide slide-code" data-index="16">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 14</span>
+    <span class="slide-title-text">MCPs Are Not Features. They&#x27;re Workflow Nodes.</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Most PM MCP usage: &quot;I have Jira connected&quot;
+    Better PM MCP usage: Jira is a node in a flow
+    ISOLATED MCP (what you probably do):
+<span class="line-arrow">    <span class="cy">→</span> Open Claude Code                                </span>
+<span class="line-arrow">    <span class="cy">→</span> &quot;Look at my Jira backlog&quot;                       </span>
+<span class="line-arrow">    <span class="cy">→</span> Read the answer                                 </span>
+<span class="section-header">    MCP AS WORKFLOW NODE:                             </span>
+<span class="line-arrow">    <span class="cy">→</span> Sprint retro trigger                            </span>
+<span class="line-arrow">    <span class="cy">→</span> Read Jira sprint data                           </span>
+<span class="line-arrow">    <span class="cy">→</span> Read Amplitude: feature usage this sprint       </span>
+<span class="line-arrow">    <span class="cy">→</span> Read PRDs from Notion: what we said we&#x27;d build  </span>
+<span class="line-arrow">    <span class="cy">→</span> Compare all three                               </span>
+<span class="line-arrow">    <span class="cy">→</span> Output: planned vs built vs used analysis       </span></pre>
+  </div>
+  <div class="notes" id="notes-16">&quot;Every MCP is a data source. Orchestration = combining data sources into insights.&quot; This is the highest-leverage PM use of MCPs. Single MCP = data retrieval. Multiple MCPs = intelligence.</div>
+</section>
+
+<section class="slide slide-code" data-index="17">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 15</span>
+    <span class="slide-title-text">5 Compound MCP Workflows</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    <span class="am">1.</span> SPRINT HEALTH CHECK
+       Jira (tickets) + Amplitude (usage) + Git
+<span class="line-arrow">       <span class="cy">→</span> &quot;Is what we shipped actually being used?&quot;    </span>
+    <span class="am">2.</span> COMPETITIVE INTELLIGENCE PIPELINE
+<span class="line-arrow">       Bright Data (scrape) <span class="cy">→</span> synthesis <span class="cy">→</span> Notion      </span>
+<span class="line-arrow">       <span class="cy">→</span> auto-updated competitive tracker             </span>
+    <span class="am">3.</span> USER RESEARCH SYNTHESIS
+       Intercom/support tool + survey tool
+<span class="line-arrow">       <span class="cy">→</span> pattern extraction <span class="cy">→</span> PRD input               </span>
+    <span class="am">4.</span> ROADMAP VALIDATION
+       Jira (committed items) + customer feedback
+       + Amplitude (actual usage patterns)
+<span class="line-arrow">       <span class="cy">→</span> &quot;Are we building the right things?&quot;          </span>
+    <span class="am">5.</span> RELEASE IMPACT ANALYSIS
+       Git (what shipped) + Amplitude (before/after)
+<span class="line-arrow">       <span class="cy">→</span> &quot;Did the release move the metrics?&quot;          </span></pre>
+  </div>
+  <div class="notes" id="notes-17">Walk one of these in detail (audience vote which one). Each workflow is a multi-step prompt + file output chain. See modules/04-mcp-ecosystem.md for full prompt templates.</div>
+</section>
+
+<section class="slide slide-code" data-index="18">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 16</span>
+    <span class="slide-title-text">Building a Compound Workflow (Live)</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block"><span class="section-header">    DEMO: Sprint Health Check                         </span>
+    &quot;This sprint we shipped [A], [B], [C].
+     Step 1: Read Jira — what were the tickets?
+     Step 2: Read Amplitude — was each used?
+             Metric: DAU on each feature for
+             7 days post-release vs. baseline.
+     Step 3: For any feature where usage &lt;30%
+             of expected: write a 1-paragraph
+             hypothesis of what went wrong.
+     Step 4: Save to notes/sprint-[N]-health.md&quot;
+    [DEMO — switch to terminal]                       </pre>
+  </div>
+  <div class="notes" id="notes-18">See modules/05-getting-started.md for demo setup. If you don&#x27;t have Amplitude + Jira connected: use the slide-only version. Show the prompt structure. That alone is worth more than a working demo.</div>
+</section>
+
+<section class="slide slide-code" data-index="19">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 17</span>
+    <span class="slide-title-text">The Context-MCP Architecture</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Your full PM orchestration stack:
+<span class="section-header">    PERSISTENT LAYER      CLAUDE.md                   </span>
+    (always loaded)       context/ folder
+<span class="section-header">    DATA LAYER            MCPs (live data)            </span>
+    (session inputs)      Local files (exports)
+<span class="section-header">    PROCESSING LAYER      Agent roles in CLAUDE.md    </span>
+    (what Claude does)    Sequential / parallel
+<span class="section-header">    OUTPUT LAYER          specs/ research/ decisions/ </span>
+    (session outputs)     (files for next session)
+    This stack replaces:
+    5 open tabs + 3 copy-pastes + 2 export CSVs      </pre>
+  </div>
+  <div class="notes" id="notes-19">This is the architecture diagram. Draw it on a whiteboard if you can. &quot;Every PM I know has 5 tabs open doing this manually. This is the same thing, with Claude as the glue layer.&quot;</div>
+</section>
+
+<section class="slide slide-part" data-index="20">
+  <div class="part-content">
+    <div class="part-number">04</div>
+    <div class="part-title">ADVANCED PATTERNS</div>
+    <div class="part-line"></div>
+  </div>
+</section>
+
+<section class="slide slide-code" data-index="21">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 18</span>
+    <span class="slide-title-text">The Review Loop: Don&#x27;t Ship Bad Output</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    The most underused PM technique:
+    asking Claude to review its own output.
+    After every major output, add:
+    &quot;Now read this as the skeptical VP of Product.
+     What are the 3 weakest points?
+     Where would a senior engineer push back?
+     What assumption are we making that might fail?&quot;
+    This is a mini Review Arena.
+    Engineers do this with 5 parallel reviewers.
+    You can do it in one extra prompt.                </pre>
+  </div>
+  <div class="notes" id="notes-21">&quot;The cc-teams plugin does this with multiple agents simultaneously. You can approximate it with one agent and a perspective-shift prompt. Same effect, simpler setup.&quot;</div>
+</section>
+
+<section class="slide slide-code" data-index="22">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 19</span>
+    <span class="slide-title-text">PM Agent Roles Worth Defining</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Define these in your CLAUDE.md:
+<span class="line-arrow">    /research  <span class="cy">→</span> &quot;Act as a rigorous researcher.       </span>
+                 Cite sources. Flag uncertainty.&quot;
+<span class="line-arrow">    /spec      <span class="cy">→</span> &quot;Act as a senior PM who&#x27;s shipped    </span>
+                 this feature type before. Be
+                 specific. Use our template.&quot;
+<span class="line-arrow">    /data      <span class="cy">→</span> &quot;Act as a PM-trained data analyst.   </span>
+                 Translate numbers to decisions.
+                 Never bury the lede.&quot;
+<span class="line-arrow">    /devil     <span class="cy">→</span> &quot;Act as the skeptical VP who will    </span>
+                 question every assumption in this.&quot;
+    These are slash commands you define.
+    No plugin required.                               </pre>
+  </div>
+  <div class="notes" id="notes-22">&quot;You put these in CLAUDE.md as instructions. When you type /spec, Claude knows what mode to enter. It&#x27;s a custom command system built from plain text.&quot;</div>
+</section>
+
+<section class="slide slide-code" data-index="23">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 20</span>
+    <span class="slide-title-text">What the Full PM Harness Looks Like</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    product-org-os (open source, ~13 agents):
+<span class="line-arrow">    CPO agent          <span class="cy">→</span> strategic bets               </span>
+<span class="line-arrow">    VP Product agent   <span class="cy">→</span> roadmap, trade-offs          </span>
+<span class="line-arrow">    Director PM agent  <span class="cy">→</span> execution, dependencies      </span>
+<span class="line-arrow">    PM agent           <span class="cy">→</span> day-to-day decisions         </span>
+<span class="line-arrow">    Research agent     <span class="cy">→</span> user research synthesis      </span>
+<span class="line-arrow">    Data agent         <span class="cy">→</span> metric interpretation        </span>
+    + 7 more roles
+    160+ commands. Role-based context switching.
+    You don&#x27;t have to install this.
+    But knowing it exists shows you the ceiling.      </pre>
+  </div>
+  <div class="notes" id="notes-23">&quot;This is what fully engineered looks like. A PM who built a 13-agent system for their entire product org. Most of you don&#x27;t need this. But going from Level 1 to Level 2 is 4-5 hours of CLAUDE.md work.&quot;</div>
+</section>
+
+<section class="slide slide-code" data-index="24">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 21</span>
+    <span class="slide-title-text">The Before/After</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    BEFORE orchestration:
+<span class="line-arrow">    <span class="cy">→</span> Open Claude Code                                </span>
+<span class="line-arrow">    <span class="cy">→</span> Explain context (again)                         </span>
+<span class="line-arrow">    <span class="cy">→</span> One prompt, one answer                          </span>
+<span class="line-arrow">    <span class="cy">→</span> Copy output to Notion                          </span>
+<span class="line-arrow">    <span class="cy">→</span> Next session: start over                        </span>
+<span class="section-header">    AFTER:                                             </span>
+<span class="line-arrow">    <span class="cy">→</span> Open project folder                             </span>
+<span class="line-arrow">    <span class="cy">→</span> Context loads automatically                     </span>
+<span class="line-arrow">    <span class="cy">→</span> Multi-step pipeline runs                        </span>
+<span class="line-arrow">    <span class="cy">→</span> Output saves to /specs or /research             </span>
+<span class="line-arrow">    <span class="cy">→</span> Next session reads yesterday&#x27;s files            </span>
+<span class="line-arrow">    <span class="cy">→</span> MCPs feed live data into every step             </span>
+    Time delta: the same work, 60-70% faster.         </pre>
+  </div>
+  <div class="notes" id="notes-24">Don&#x27;t claim a specific number you can&#x27;t prove. &quot;60-70% faster&quot; is consistent with reported PM outcomes. If the audience pushes back: &quot;Your mileage will vary. The pattern holds.&quot;</div>
+</section>
+
+<section class="slide slide-code" data-index="25">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 22</span>
+    <span class="slide-title-text">Your Setup Sprint</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block"><span class="line-arrow">    4 hours this week <span class="cy">→</span> permanent leverage            </span>
+    Hour 1: Upgrade your CLAUDE.md to Level 3
+<span class="line-arrow">      <span class="cy">→</span> Context loading sequence + agent roles        </span>
+<span class="line-arrow">      <span class="cy">→</span> Anti-patterns + slash command definitions     </span>
+    Hour 2: Install the PM skill stack
+<span class="line-arrow">      <span class="cy">→</span> Official PM plugin (6 slash commands)         </span>
+<span class="line-arrow">      <span class="cy">→</span> menkesu + lenny-skills + assimovt             </span>
+<span class="line-arrow">      <span class="cy">→</span> Test: /product-management:write-spec          </span>
+    Hour 3: Wire one compound MCP workflow
+<span class="line-arrow">      <span class="cy">→</span> Pick Workflow 1-5 from Slide 15              </span>
+<span class="line-arrow">      <span class="cy">→</span> Write the prompt. Run it. Save the output.   </span>
+    Hour 4: Build your folder structure + agents
+<span class="line-arrow">      <span class="cy">→</span> context/ notes/ research/ specs/ decisions/   </span>
+<span class="line-arrow">      <span class="cy">→</span> Test with a real task you have today          </span></pre>
+  </div>
+  <div class="notes" id="notes-25">Make this concrete. &quot;Hour 1&quot; not &quot;step 1.&quot; They have context from the session. This is the implementation path.</div>
+</section>
+
+<section class="slide slide-code" data-index="26">
+  <div class="slide-header">
+    <span class="slide-num-chip">SLIDE 23</span>
+    <span class="slide-title-text">Resources</span>
+  </div>
+  <div class="code-container">
+    <pre class="code-block">    Orchestration reference:
+<span class="line-arrow">    <span class="cy">→</span> cc10x (engineering harness, architecture ref)   </span>
+      github.com/romiluz13/cc10x
+    PM-specific harnesses:
+<span class="line-arrow">    <span class="cy">→</span> product-org-os (13-agent PM system)             </span>
+      github.com/yohayetsion/product-org-os
+<span class="line-arrow">    <span class="cy">→</span> pm-studio (CLAUDE.md patterns for PMs)          </span>
+      github.com/zoekdestep/pm-studio
+    Skills &amp; Plugins:
+<span class="line-arrow">    <span class="cy">→</span> Official PM Plugin (7,700+ ★)                   </span>
+      github.com/anthropics/knowledge-work-plugins
+<span class="line-arrow">    <span class="cy">→</span> menkesu/awesome-pm-skills (29 skills, 7 modes)  </span>
+<span class="line-arrow">    <span class="cy">→</span> Lenny&#x27;s 86 PM skills: refoundai/lenny-skills    </span>
+<span class="line-arrow">    <span class="cy">→</span> BMAD PM Agent: bmad-code-org/BMAD-METHOD        </span>
+<span class="line-arrow">    <span class="cy">→</span> Product Org OS: yohayetsion/product-org-os      </span>
+    MCP reference: CC-PM/02-mcp-toolkit.md
+    Full guide: github.com/romiluz13/CC-PM             </pre>
+  </div>
+  <div class="notes" id="notes-26">Leave this up during Q&amp;A.</div>
+</section>
+
+<section class="slide slide-closing" data-index="27">
+  <div class="closing-content">
+<div class="closing-main">You already know how to use Claude Code.</div>
+<div class="closing-body">The PMs who will be significantly faster</div>
+<div class="closing-body">in 6 months aren&#x27;t learning new tools.</div>
+<div class="closing-body">They&#x27;re engineering the tools they already have.</div>
+<div class="closing-body">CLAUDE.md that thinks.</div>
+<div class="closing-body">Skills that encode PM craft.</div>
+<div class="closing-body">Sessions with structure.</div>
+<div class="closing-body">MCPs that talk to each other.</div>
+<div class="closing-cta">Four hours this week.</div>
+  </div>
+  <div class="notes" id="notes-27">&quot;Four hours this week.&quot; Say it once. Then: &quot;What&#x27;s on your mind?&quot; This audience will have tactical questions. Let them drive Q&amp;A. Use this when someone asks &quot;do I need to pay for Figma?&quot; in Q&amp;A. The new Claude Code → Figma direction (Feb 2026) is worth spending time on: &quot;You can now take a screenshot of your live app and push it to Figma as editable frames. Design team sees exactly what shipped. Side-by-side with the original design. No meeting required.&quot; &quot;The design-in-HTML approach sounds complex but it&#x27;s powerful: Claude is excellent at HTML/CSS. You describe the visual style, it designs the slide, browser renders it pixel-perfect, exports to PPTX. You can use your company&#x27;s template with the template-based workflow.&quot; See modules/04-mcp-ecosystem.md for full prompt patterns. Use for technical PMs who ask &quot;how does the parallel thing actually work?&quot; Use if someone asks &quot;do I have to structure everything this way?&quot; Honesty here builds credibility. This slide is gold for PMs who suffer from &quot;we already decided this&quot; recurring conversations. Decision log + CLAUDE.md instruction = never again.</div>
+</section>
+</div>
+<div id="counter">1 / 28</div>
+<div id="nav-hint">← → to navigate · N for speaker notes</div>
+<script>
+
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const total = slides.length;
+  let current = 0;
+  let notesVisible = false;
+
+  function show(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    hideNotes(current);
+    current = n;
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + total;
+    progress.style.width = ((current + 1) / total * 100) + '%';
+    if (notesVisible) showNotes(current);
+  }
+
+  function showNotes(idx) {
+    const n = document.getElementById('notes-' + idx);
+    if (n) n.classList.add('visible');
+  }
+
+  function hideNotes(idx) {
+    const n = document.getElementById('notes-' + idx);
+    if (n) n.classList.remove('visible');
+  }
+
+  function toggleNotes() {
+    notesVisible = !notesVisible;
+    if (notesVisible) showNotes(current);
+    else hideNotes(current);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      show(current - 1);
+    } else if (e.key === 'n' || e.key === 'N') {
+      toggleNotes();
+    } else if (e.key === 'Home') {
+      show(0);
+    } else if (e.key === 'End') {
+      show(total - 1);
+    }
+  });
+
+  document.getElementById('stage').addEventListener('click', function(e) {
+    if (e.clientX > window.innerWidth / 2) {
+      show(current + 1);
+    } else {
+      show(current - 1);
+    }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+  });
+  document.addEventListener('touchend', function(e) {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) show(current + 1);
+      else show(current - 1);
+    }
+  });
+
+  show(0);
+})();
+
+</script>
+</body>
+</html>
