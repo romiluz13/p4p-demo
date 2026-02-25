@@ -41,6 +41,8 @@ claude
 
 Then open each file in `prompts/` and paste the text into Claude Code. Run them in order.
 
+After each workflow, outputs are saved to a `docs/` folder inside `live-demo/`. By the end you have 5 cross-referencing documents — the spec quotes the research, the comms use dates from the roadmap — all built from a single source of context.
+
 ---
 
 ## What's in This Repo
