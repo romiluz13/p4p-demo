@@ -31,14 +31,14 @@ The outputs in `example-session/` were generated live in one session. Nothing wa
 
 ---
 
-## Run It in 3 Steps
+## Run the Demo in 3 Steps
 
 ```bash
 # 1. Install Claude Code
 npm install -g @anthropic-ai/claude-code
 
 # 2. Clone this repo and navigate to the demo
-git clone <this-repo>
+git clone https://github.com/romiluz13/p4p-demo
 cd p4p-demo/live-demo
 
 # 3. Open Claude Code — context loads automatically
@@ -46,6 +46,30 @@ claude
 ```
 
 Then paste the prompts from `live-demo/prompts/` one at a time. Watch the system route, execute, and remember across workflows.
+
+---
+
+## Use cc-p4p on Your Own Product
+
+The demo runs on pre-loaded monday.com context. To run on your product:
+
+```bash
+# 1. Install Claude Code
+npm install -g @anthropic-ai/claude-code
+
+# 2. Install the cc-p4p plugin
+# Inside Claude Code, run:
+/plugin install cc-p4p@romiluz13
+
+# 3. Set up your context
+# Copy live-demo/CLAUDE.md → replace monday.com content with your product
+# Copy live-demo/context/ → replace with your personas, metrics, OKRs
+
+# 4. Open Claude Code and start working
+claude
+```
+
+Plugin source: [github.com/romiluz13/cc-p4p](https://github.com/romiluz13/cc-p4p)
 
 ---
 
