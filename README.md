@@ -58,7 +58,8 @@ The demo runs on pre-loaded monday.com context. To run on your product:
 npm install -g @anthropic-ai/claude-code
 
 # 2. Install the cc-p4p plugin
-# Inside Claude Code, run:
+# Inside Claude Code, run both:
+/plugin marketplace add romiluz13/cc-p4p
 /plugin install cc-p4p@romiluz13
 
 # 3. Set up your context
