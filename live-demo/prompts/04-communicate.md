@@ -1,11 +1,7 @@
 # Prompt 04 — Communicate
 
-## What This Is
-The fourth prompt. Triggers after ROADMAP has completed and updated roadmap-state.md.
-Natural language. The router detects COMMUNICATE intent.
-COMMUNICATE reads activeContext.md, roadmap-state.md, and tone-and-voice.md.
+Triggers the COMMUNICATE workflow. Reads the roadmap before writing — won't promise unconfirmed dates.
 
-## The Prompt (copy everything between the lines)
 ---
 I need two things written:
 
@@ -18,33 +14,8 @@ He asked directly: "What's monday.com's answer to ClickUp's free Gantt?" He has 
 Use the timeline from the roadmap we just built. Don't promise anything that isn't in there.
 ---
 
-## What the Router Should Do
-Detect COMMUNICATE intent from: "write talking points," "need a message," "respond to," "draft something."
-Route to: COMMUNICATE workflow (comms-drafter agent).
-COMMUNICATE reads: roadmap-state.md (for timeline), insights.md (for specific customer pain),
-tone-and-voice.md (for voice guidelines).
-
-## What to Watch For
-- Sales talking points: tactical, objection-specific, concrete timeline
-- Marcus message: direct, acknowledges the gap honestly, references his specific renewal context
-- Timeline references match what was in the roadmap output (from roadmap-state.md)
-- No internal jargon in customer-facing message
-- No overpromising — only what's confirmed in the roadmap
-- Tone matches tone-and-voice.md (Marcus is an IT director, not a marketer)
-- Router Contract at end
-
-## Beat 10 Moment (Memory Threading)
-After the messages appear, find where the Marcus message references:
-- The specific timeline ("available in Q3" or a specific month)
-- His renewal context ("your renewal in 8 weeks")
-
-Point at the timeline reference and say:
-"That date came from the roadmap that was just built."
-"This message is grounded in four workflows of work — research, spec, roadmap, communicate."
-"All of it in one session. Zero copy-paste between workflows."
-
-## Fallback
-If messages are too generic, add:
-"For Marcus specifically: he told us he couldn't answer his board's question about
-dependencies when ClickUp came up in the conversation. Reference that specific situation.
-And reference the 8-week renewal window so the urgency is clear."
+**To adapt for your company:**
+- Replace "VP of Sales" with your actual stakeholder
+- Replace "Marcus at Meridian Financial" with your at-risk customer
+- Replace "ClickUp's free Gantt" with your competitive threat
+- Replace the tone context ("IT director, not a marketer") with your customer's actual role

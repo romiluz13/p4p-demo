@@ -1,11 +1,7 @@
-# Prompt 01 — Research (The Crisis)
+# Prompt 01 — Research
 
-## What This Is
-The first prompt you paste into Claude Code during the demo.
-It reads like a real PM message — natural language, no slash commands.
-The router will detect RESEARCH intent automatically.
+Triggers the RESEARCH workflow. Paste into Claude Code.
 
-## The Prompt (copy everything between the lines)
 ---
 Just got this Slack from the VP of Sales:
 
@@ -20,18 +16,8 @@ I need to understand what's actually going on here before I can respond. Specifi
 Can you research this and give me a synthesis of what we know?
 ---
 
-## What the Router Should Do
-Detect RESEARCH intent from: "research this," "give me a synthesis," "what do customers actually need," "what exactly did ClickUp ship."
-Route to: RESEARCH workflow (research-synthesizer agent).
-
-## What to Watch For
-- The router routing automatically — point this out when it happens: "I didn't tell it to do research."
-- The workflow creating tasks you can track with `tasks` command
-- The synthesis output grading evidence: Strong/Medium/Weak
-- Competitive feature comparison table (monday.com vs. ClickUp)
-- "What we still don't know" section at the end
-- Router Contract YAML at the end with STATUS: SYNTHESIS_COMPLETE
-
-## Fallback
-If cc-p4p routes incorrectly, rephrase:
-"I need competitive research on ClickUp's new Gantt feature and what enterprise customers need from timeline management tools."
+**To adapt for your company:**
+- Replace "ClickUp" with your competitor
+- Replace "Gantt charts and Timeline views are now free" with what they actually announced
+- Replace "Meridian Financial", "Northgate Healthcare", "Constellation Brands" with your accounts
+- Replace "monday.com" with your product name
