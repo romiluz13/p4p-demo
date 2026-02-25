@@ -27,21 +27,19 @@ Five workflows run in sequence:
 ## Run It
 
 ```bash
-# 1. Install Claude Code
-npm install -g @anthropic-ai/claude-code
+# 1. Clone — this gives you the monday.com context, personas, prompts, everything
+git clone https://github.com/romiluz13/p4p-demo
+cd p4p-demo/live-demo
 
-# 2. Install the cc-p4p plugin (inside Claude Code)
+# 2. Install the cc-p4p plugin (run inside Claude Code)
 /plugin marketplace add romiluz13/cc-p4p
 /plugin install cc-p4p@romiluz13
 
-# 3. Navigate to the demo
-cd p4p-demo/live-demo
+# 3. Start the session
 claude
 ```
 
-Then open each file in `live-demo/prompts/` and paste the text into Claude Code. Run them in order.
-
-**→ [Full demo script with presenter notes](DEMO-SCRIPT.md)**
+Then open each file in `prompts/` and paste the text into Claude Code. Run them in order.
 
 ---
 
@@ -49,8 +47,6 @@ Then open each file in `live-demo/prompts/` and paste the text into Claude Code.
 
 ```
 p4p-demo/
-├── DEMO-SCRIPT.md          Presenter guide — what to say, what to show, timing
-│
 └── live-demo/
     ├── CLAUDE.md           monday.com product context + cc-p4p plugin entry
     ├── context/
